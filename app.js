@@ -5,17 +5,9 @@ const MIN_ROUTE_PLACES = 5;
 const MAX_HOURS_PER_DAY = 14;
 const TRAVEL_SAME_REGION_HOURS = 0.75;
 const TRAVEL_DIFF_REGION_HOURS = 2;
-const PREMIUM_SURCHARGE = 500_000;
-
-const PACKAGES = {
-  quick: { id: "quick", price: 0 },
-  premium: { id: "premium", price: PREMIUM_SURCHARGE },
-};
 
 const ADDON_OPTIONS = {
-  photo: { id: "photo", price: 300_000 },
-  drone: { id: "drone", price: 500_000 },
-  lunch: { id: "lunch", price: 250_000 },
+  drone: { id: "drone", price: 200_000 },
   port_transfer: { id: "port_transfer", price: 350_000 },
 };
 
@@ -805,7 +797,6 @@ const state = {
   catalogSelectedCategories: [],
   mode: null,
   language: "ru",
-  packageId: PACKAGES.quick.id,
   selectedAddons: [],
   blockedDates: [],
   requiredPlacesMin: MIN_ROUTE_PLACES,
@@ -838,11 +829,7 @@ const readyRoutesSectionEl = document.getElementById("readyRoutesSection");
 const step1El = document.getElementById("step1");
 const step2El = document.getElementById("step2");
 const step3El = document.getElementById("step3");
-const packageQuickBtn = document.getElementById("packageQuickBtn");
-const packagePremiumBtn = document.getElementById("packagePremiumBtn");
-const addonPhotoEl = document.getElementById("addonPhoto");
 const addonDroneEl = document.getElementById("addonDrone");
-const addonLunchEl = document.getElementById("addonLunch");
 const addonPortTransferEl = document.getElementById("addonPortTransfer");
 const travelDateEl = document.getElementById("travelDate");
 const availabilityHintEl = document.getElementById("availabilityHint");
@@ -855,15 +842,8 @@ const readyModeTitleEl = document.getElementById("readyModeTitle");
 const readyModeDescEl = document.getElementById("readyModeDesc");
 const customModeTitleEl = document.getElementById("customModeTitle");
 const customModeDescEl = document.getElementById("customModeDesc");
-const packageTitleEl = document.getElementById("packageTitle");
-const packageQuickTextEl = document.getElementById("packageQuickText");
-const packageQuickDescEl = document.getElementById("packageQuickDesc");
-const packagePremiumTextEl = document.getElementById("packagePremiumText");
-const packagePremiumDescEl = document.getElementById("packagePremiumDesc");
 const addonsTitleEl = document.getElementById("addonsTitle");
-const addonPhotoTextEl = document.getElementById("addonPhotoText");
 const addonDroneTextEl = document.getElementById("addonDroneText");
-const addonLunchTextEl = document.getElementById("addonLunchText");
 const addonPortTransferTextEl = document.getElementById("addonPortTransferText");
 
 const formatMoney = (value) =>
@@ -933,16 +913,10 @@ function getRequiredPlacesMin() {
   return Math.round(value);
 }
 
-function getPricing(
-  places,
-  packageId = state.packageId,
-  selectedAddons = state.selectedAddons,
-  presetPricing = state.presetPricing
-) {
+function getPricing(places, selectedAddons = state.selectedAddons, presetPricing = state.presetPricing) {
   const extraPlaces = Math.max(0, places.length - INCLUDED_SPOTS);
   const surcharge = extraPlaces * EXTRA_SPOT_SURCHARGE;
   const ticketTotal = places.reduce((acc, place) => acc + place.ticket, 0);
-  const packageSurcharge = PACKAGES[packageId]?.price || 0;
   const basePrice =
     presetPricing && Number.isFinite(Number(presetPricing.baseOverride))
       ? Number(presetPricing.baseOverride)
@@ -956,15 +930,12 @@ function getPricing(
   const addonsTotal = selectedAddons.reduce((acc, addonId) => {
     return acc + (ADDON_OPTIONS[addonId]?.price || 0);
   }, 0);
-  const routeOnly =
-    basePrice + surcharge + packageSurcharge + addonsTotal + mandatoryExtrasTotal;
+  const routeOnly = basePrice + surcharge + addonsTotal + mandatoryExtrasTotal;
   return {
     base: basePrice,
     includedSpots: INCLUDED_SPOTS,
     extraPlaces,
     surcharge,
-    packageId,
-    packageSurcharge,
     mandatoryExtras,
     mandatoryExtrasTotal,
     addons: selectedAddons,
@@ -1228,8 +1199,6 @@ function renderSummary() {
 
   summaryEl.innerHTML = "";
 
-  const packageName =
-    state.packageId === PACKAGES.premium.id ? t("premiumPackage") : t("quickPackage");
   const basePriceLabel =
     state.presetPricing && Number.isFinite(Number(state.presetPricing.baseOverride))
       ? state.language === "en"
@@ -1239,9 +1208,7 @@ function renderSummary() {
   const addonsText = pricing.addons.length
     ? pricing.addons
         .map((addonId) => {
-          if (addonId === "photo") return t("addonPhotoText");
           if (addonId === "drone") return t("addonDroneText");
-          if (addonId === "lunch") return t("addonLunchText");
           if (addonId === "port_transfer") return t("addonPortTransferText");
           return addonId;
         })
@@ -1262,7 +1229,6 @@ function renderSummary() {
       `${t("extraPlacesLabel")} (${pricing.extraPlaces})`,
       formatMoney(pricing.surcharge),
     ],
-    [t("packageLabel"), `${packageName} (${formatMoney(pricing.packageSurcharge)})`],
     [t("addonsLabel"), `${addonsText} (${formatMoney(pricing.addonsTotal)})`],
     [
       state.language === "en" ? "Mandatory trip extras" : "Обязательные доп.расходы",
@@ -1453,19 +1419,8 @@ function renderMode() {
   }
 }
 
-function renderPackage() {
-  if (packageQuickBtn) {
-    packageQuickBtn.classList.toggle("active", state.packageId === PACKAGES.quick.id);
-  }
-  if (packagePremiumBtn) {
-    packagePremiumBtn.classList.toggle("active", state.packageId === PACKAGES.premium.id);
-  }
-}
-
 function renderAddons() {
-  if (addonPhotoEl) addonPhotoEl.checked = state.selectedAddons.includes("photo");
   if (addonDroneEl) addonDroneEl.checked = state.selectedAddons.includes("drone");
-  if (addonLunchEl) addonLunchEl.checked = state.selectedAddons.includes("lunch");
   if (addonPortTransferEl) addonPortTransferEl.checked = state.selectedAddons.includes("port_transfer");
 }
 
@@ -1480,22 +1435,9 @@ function renderLanguage() {
   if (readyModeDescEl) readyModeDescEl.textContent = t("readyModeDesc");
   if (customModeTitleEl) customModeTitleEl.textContent = t("customModeTitle");
   if (customModeDescEl) customModeDescEl.textContent = t("customModeDesc");
-  if (packageTitleEl) packageTitleEl.textContent = t("packageTitle");
-  if (packageQuickTextEl) packageQuickTextEl.textContent = t("packageQuickText");
-  if (packageQuickDescEl) packageQuickDescEl.textContent = t("packageQuickDesc");
-  if (packagePremiumTextEl) packagePremiumTextEl.textContent = t("packagePremiumText");
-  if (packagePremiumDescEl) {
-    packagePremiumDescEl.textContent = `${t("packagePremiumDesc")} (+${formatMoney(PREMIUM_SURCHARGE)})`;
-  }
   if (addonsTitleEl) addonsTitleEl.textContent = t("addonsTitle");
-  if (addonPhotoTextEl) {
-    addonPhotoTextEl.textContent = `${t("addonPhotoText")} (+${formatMoney(ADDON_OPTIONS.photo.price)})`;
-  }
   if (addonDroneTextEl) {
     addonDroneTextEl.textContent = `${t("addonDroneText")} (+${formatMoney(ADDON_OPTIONS.drone.price)})`;
-  }
-  if (addonLunchTextEl) {
-    addonLunchTextEl.textContent = `${t("addonLunchText")} (+${formatMoney(ADDON_OPTIONS.lunch.price)})`;
   }
   if (addonPortTransferTextEl) {
     addonPortTransferTextEl.textContent = `${t("addonPortTransferText")} (+${formatMoney(ADDON_OPTIONS.port_transfer.price)})`;
@@ -1530,7 +1472,6 @@ function selectMode(mode) {
 
 function render() {
   renderLanguage();
-  renderPackage();
   renderAddons();
   renderMode();
   renderSteps();
@@ -1644,7 +1585,6 @@ function buildLeadPayload() {
       days: routeDays,
       driver_name: state.routeTitle,
       required_places_min: requiredPlacesMin,
-      package_id: state.packageId,
       addons: state.selectedAddons,
       preset_pricing: state.presetPricing,
       places: state.places,
@@ -1686,7 +1626,6 @@ function sendLeadToTelegram(payload, leadId = null) {
     people_count: payload.customer.people_count,
     travel_date: payload.customer.travel_date,
     days: payload.route.days,
-    package_id: payload.route.package_id,
     addons: payload.route.addons,
     required_places_min: payload.route.required_places_min,
     preset_pricing: payload.route.preset_pricing,
@@ -1888,26 +1827,19 @@ if (addJavaGrandRouteBtn) {
         baseOverride: 6_500_000,
         mandatoryExtras: [
           { label: "Поездка на джипах", price: 100_000 },
-          { label: "2 отеля", price: 250_000 },
+          { label: "2 отеля", price: 300_000 },
           { label: "Респиратор Иджен", price: 50_000 },
           { label: "Входной билет Иджен", price: 135_000 },
+          { label: "Справки о здоровье", price: 15_000 },
         ],
       },
     });
   });
 }
 
-function setPackage(packageId) {
-  state.packageId = packageId;
-  renderSummary();
-  renderPackage();
-}
-
 function syncAddonsFromUI() {
   const selected = [];
-  if (addonPhotoEl && addonPhotoEl.checked) selected.push("photo");
   if (addonDroneEl && addonDroneEl.checked) selected.push("drone");
-  if (addonLunchEl && addonLunchEl.checked) selected.push("lunch");
   if (addonPortTransferEl && addonPortTransferEl.checked) selected.push("port_transfer");
   state.selectedAddons = selected;
   renderSummary();
@@ -1938,16 +1870,7 @@ function applyLanguage(lang) {
   render();
 }
 
-if (packageQuickBtn) {
-  packageQuickBtn.addEventListener("click", () => setPackage(PACKAGES.quick.id));
-}
-if (packagePremiumBtn) {
-  packagePremiumBtn.addEventListener("click", () => setPackage(PACKAGES.premium.id));
-}
-
-if (addonPhotoEl) addonPhotoEl.addEventListener("change", syncAddonsFromUI);
 if (addonDroneEl) addonDroneEl.addEventListener("change", syncAddonsFromUI);
-if (addonLunchEl) addonLunchEl.addEventListener("change", syncAddonsFromUI);
 if (addonPortTransferEl) addonPortTransferEl.addEventListener("change", syncAddonsFromUI);
 
 if (travelDateEl) {
