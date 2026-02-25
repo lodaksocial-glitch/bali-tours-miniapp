@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: bali-tours-web
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.11
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 10000
+      - key: ADMIN_TOKEN
+        generateValue: true
+
+  - type: worker
+    name: bali-tours-bot
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.11
+      - key: WEB_APP_URL
+        value: https://bali-tours-web.onrender.com
+      - key: BACKEND_URL
+        value: https://bali-tours-web.onrender.com
+      - key: BOT_TOKEN
+        sync: false
+      - key: ADMIN_CHAT_ID
+        sync: false

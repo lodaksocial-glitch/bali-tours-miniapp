@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin | Tour Leads</title>
+    <style>
+      :root {
+        --bg: #f7f4ec;
+        --ink: #171614;
+        --muted: #575146;
+        --line: rgba(23, 22, 20, 0.15);
+        --card: #ffffff;
+        --accent: #0c6c5a;
+        --danger: #a0392a;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Manrope", sans-serif;
+        color: var(--ink);
+        background: var(--bg);
+      }
+
+      .wrap {
+        width: min(1200px, 95vw);
+        margin: 24px auto 48px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--card);
+        padding: 14px;
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      .small {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .controls {
+        display: grid;
+        grid-template-columns: 220px 200px 1fr auto auto;
+        gap: 8px;
+      }
+
+      input,
+      select,
+      button {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        font: inherit;
+        padding: 9px 10px;
+      }
+
+      button {
+        background: var(--accent);
+        color: #fff;
+        cursor: pointer;
+        border: 0;
+      }
+
+      button.secondary {
+        background: #e6843f;
+      }
+
+      button.danger {
+        background: var(--danger);
+      }
+
+      .table-wrap {
+        overflow: auto;
+      }
+
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        min-width: 1050px;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+        padding: 8px;
+        font-size: 13px;
+      }
+
+      th {
+        position: sticky;
+        top: 0;
+        background: #fff;
+      }
+
+      .status {
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 11px;
+      }
+
+      .status-new {
+        color: #0a6f9f;
+      }
+
+      .status-contacted {
+        color: #9b6f00;
+      }
+
+      .status-booked {
+        color: #0f7d42;
+      }
+
+      .status-archived {
+        color: #8b8b8b;
+      }
+
+      .actions {
+        display: flex;
+        gap: 6px;
+      }
+
+      @media (max-width: 900px) {
+        .controls {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="panel">
+        <h1>Заявки на туры</h1>
+        <p class="small">Админка для просмотра и обработки входящих заявок из Telegram Mini App.</p>
+      </section>
+
+      <section class="panel">
+        <div class="controls">
+          <input id="adminToken" placeholder="ADMIN_TOKEN" />
+          <select id="statusFilter">
+            <option value="">Все статусы</option>
+            <option value="new">new</option>
+            <option value="contacted">contacted</option>
+            <option value="booked">booked</option>
+            <option value="archived">archived</option>
+          </select>
+          <input id="searchInput" placeholder="Поиск: имя, телефон, место" />
+          <button id="saveTokenBtn" class="secondary">Сохранить токен</button>
+          <button id="refreshBtn">Обновить</button>
+        </div>
+        <p class="small" id="meta"></p>
+      </section>
+
+      <section class="panel table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Дата</th>
+              <th>Клиент</th>
+              <th>Контакт</th>
+              <th>Маршрут</th>
+              <th>Цена</th>
+              <th>Статус</th>
+              <th>Источник</th>
+              <th>Действия</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </section>
+    </main>
+
+    <script>
+      const tokenEl = document.getElementById("adminToken");
+      const statusFilterEl = document.getElementById("statusFilter");
+      const searchInputEl = document.getElementById("searchInput");
+      const refreshBtn = document.getElementById("refreshBtn");
+      const saveTokenBtn = document.getElementById("saveTokenBtn");
+      const rowsEl = document.getElementById("rows");
+      const metaEl = document.getElementById("meta");
+      const STATUSES = ["new", "contacted", "booked", "archived"];
+
+      let leads = [];
+
+      tokenEl.value = localStorage.getItem("adminToken") || "";
+
+      saveTokenBtn.addEventListener("click", () => {
+        localStorage.setItem("adminToken", tokenEl.value.trim());
+        metaEl.textContent = "Токен сохранен в браузере.";
+      });
+
+      refreshBtn.addEventListener("click", loadLeads);
+      statusFilterEl.addEventListener("change", loadLeads);
+      searchInputEl.addEventListener("input", renderRows);
+
+      function escapeText(value) {
+        return (value || "").toString();
+      }
+
+      function formatMoney(value) {
+        const number = Number(value || 0);
+        return `${new Intl.NumberFormat("ru-RU").format(Math.round(number))} IDR`;
+      }
+
+      function formatDate(value) {
+        if (!value) return "-";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+        return date.toLocaleString("ru-RU");
+      }
+
+      function buildRouteText(lead) {
+        const places = Array.isArray(lead.places) ? lead.places : [];
+        const names = places.map((p) => p.name).filter(Boolean);
+        const preview = names.slice(0, 4).join(" -> ");
+        const suffix = names.length > 4 ? ` +${names.length - 4}` : "";
+        return `${lead.route_days}д | ${lead.places_count} мест | ${preview}${suffix}`;
+      }
+
+      function setMeta(text, isError = false) {
+        metaEl.textContent = text;
+        metaEl.style.color = isError ? "#a0392a" : "#575146";
+      }
+
+      async function loadLeads() {
+        const token = tokenEl.value.trim();
+        const status = statusFilterEl.value;
+        const params = new URLSearchParams({ limit: "250" });
+        if (status) params.set("status", status);
+
+        setMeta("Загружаю заявки...");
+        rowsEl.innerHTML = "";
+
+        try {
+          const response = await fetch(`/api/leads?${params.toString()}`, {
+            headers: {
+              "X-Admin-Token": token,
+            },
+          });
+
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || !data.ok) {
+            throw new Error(data.error || `HTTP ${response.status}`);
+          }
+
+          leads = Array.isArray(data.items) ? data.items : [];
+          renderRows();
+          setMeta(`Заявок: ${leads.length}`);
+        } catch (error) {
+          setMeta(`Ошибка: ${error.message}`, true);
+        }
+      }
+
+      function filteredLeads() {
+        const query = searchInputEl.value.trim().toLowerCase();
+        if (!query) return leads;
+
+        return leads.filter((lead) => {
+          const places = Array.isArray(lead.places)
+            ? lead.places.map((p) => p.name).join(" ")
+            : "";
+          const text = [
+            lead.customer_name,
+            lead.customer_phone,
+            lead.customer_note,
+            lead.source,
+            places,
+          ]
+            .join(" ")
+            .toLowerCase();
+          return text.includes(query);
+        });
+      }
+
+      async function updateStatus(leadId, status) {
+        const token = tokenEl.value.trim();
+
+        try {
+          const response = await fetch(`/api/leads/${leadId}`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Admin-Token": token,
+            },
+            body: JSON.stringify({ status }),
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || !data.ok) {
+            throw new Error(data.error || `HTTP ${response.status}`);
+          }
+
+          const target = leads.find((item) => item.id === leadId);
+          if (target) target.status = status;
+          renderRows();
+          setMeta(`Статус заявки #${leadId} обновлен на ${status}`);
+        } catch (error) {
+          setMeta(`Ошибка обновления #${leadId}: ${error.message}`, true);
+        }
+      }
+
+      function renderRows() {
+        rowsEl.innerHTML = "";
+
+        const items = filteredLeads();
+        if (!items.length) {
+          const row = document.createElement("tr");
+          const cell = document.createElement("td");
+          cell.colSpan = 9;
+          cell.textContent = "Заявки не найдены.";
+          row.append(cell);
+          rowsEl.append(row);
+          return;
+        }
+
+        for (const lead of items) {
+          const row = document.createElement("tr");
+
+          const idCell = document.createElement("td");
+          idCell.textContent = String(lead.id);
+
+          const dateCell = document.createElement("td");
+          dateCell.textContent = formatDate(lead.created_at);
+
+          const customerCell = document.createElement("td");
+          customerCell.textContent = escapeText(lead.customer_name);
+
+          const contactCell = document.createElement("td");
+          const travelDate = lead.travel_date ? ` | ${lead.travel_date}` : "";
+          contactCell.textContent = `${escapeText(lead.customer_phone)}${travelDate}`;
+
+          const routeCell = document.createElement("td");
+          routeCell.textContent = buildRouteText(lead);
+
+          const priceCell = document.createElement("td");
+          const total = lead.pricing && typeof lead.pricing.total !== "undefined" ? lead.pricing.total : 0;
+          priceCell.textContent = formatMoney(total);
+
+          const statusCell = document.createElement("td");
+          statusCell.className = `status status-${lead.status}`;
+          statusCell.textContent = lead.status;
+
+          const sourceCell = document.createElement("td");
+          sourceCell.textContent = escapeText(lead.source || "-");
+
+          const actionsCell = document.createElement("td");
+          const actionWrap = document.createElement("div");
+          actionWrap.className = "actions";
+
+          const statusSelect = document.createElement("select");
+          for (const status of STATUSES) {
+            const option = document.createElement("option");
+            option.value = status;
+            option.textContent = status;
+            if (status === lead.status) option.selected = true;
+            statusSelect.append(option);
+          }
+
+          const saveBtn = document.createElement("button");
+          saveBtn.textContent = "Сохранить";
+          saveBtn.addEventListener("click", () => {
+            updateStatus(lead.id, statusSelect.value);
+          });
+
+          actionWrap.append(statusSelect, saveBtn);
+          actionsCell.append(actionWrap);
+
+          row.append(
+            idCell,
+            dateCell,
+            customerCell,
+            contactCell,
+            routeCell,
+            priceCell,
+            statusCell,
+            sourceCell,
+            actionsCell
+          );
+          rowsEl.append(row);
+        }
+      }
+
+      loadLeads();
+    </script>
+  </body>
+</html>
