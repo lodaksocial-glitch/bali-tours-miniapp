@@ -18,9 +18,15 @@
 
     <main class="app">
       <header class="hero">
-        <p class="badge">Создай свой уникальный маршрут</p>
+        <div class="panel-head row">
+          <p class="badge" id="heroBadge">Создай свой уникальный маршрут</p>
+          <div class="actions">
+            <button id="langRuBtn" class="btn btn-ghost" type="button">RU</button>
+            <button id="langEnBtn" class="btn btn-ghost" type="button">EN</button>
+          </div>
+        </div>
         <h1>Бали, Нуса Пенида, Ява</h1>
-        <p class="lead">
+        <p class="lead" id="heroLead">
           Выберите лучшие локации, соберите тур мечты и получите незабываемое
           путешествие с комфортным трансфером, красивыми фото-точками и
           продуманным таймингом без лишней суеты.
@@ -60,19 +66,59 @@
 
       <section class="panel">
         <div class="panel-head">
-          <h2>Шаг 1. Выберите формат</h2>
+          <h2 id="formatStepTitle">Шаг 1. Выберите формат</h2>
         </div>
         <div class="mode-grid">
           <button id="chooseReadyMode" class="mode-btn" type="button">
-            Готовые туры
-            <span class="small">Быстрый выбор готового сценария</span>
+            <span id="readyModeTitle">Готовые туры</span>
+            <span id="readyModeDesc" class="small">Быстрый выбор готового сценария</span>
           </button>
           <button id="chooseCustomMode" class="mode-btn" type="button">
-            Собрать свой
-            <span class="small">Категории -> локации -> ваш маршрут</span>
+            <span id="customModeTitle">Собрать свой</span>
+            <span id="customModeDesc" class="small">Категории -> локации -> ваш маршрут</span>
           </button>
         </div>
         <p id="modeHint" class="small"></p>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2 id="packageTitle">Пакет тура</h2>
+        </div>
+        <div class="mode-grid">
+          <button id="packageQuickBtn" class="mode-btn active" type="button">
+            <span id="packageQuickText">Быстрый тур</span>
+            <span id="packageQuickDesc" class="small">Оптимальный маршрут и комфортный темп</span>
+          </button>
+          <button id="packagePremiumBtn" class="mode-btn" type="button">
+            <span id="packagePremiumText">Премиум тур</span>
+            <span id="packagePremiumDesc" class="small">Больше сопровождения и гибкий тайминг (+500 000 IDR)</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2 id="addonsTitle">Допуслуги</h2>
+        </div>
+        <div class="addons-grid">
+          <label class="addon-item">
+            <input id="addonPhoto" type="checkbox" />
+            <span id="addonPhotoText">Фото-сопровождение (+300 000 IDR)</span>
+          </label>
+          <label class="addon-item">
+            <input id="addonDrone" type="checkbox" />
+            <span id="addonDroneText">Съемка на дрон (+500 000 IDR)</span>
+          </label>
+          <label class="addon-item">
+            <input id="addonLunch" type="checkbox" />
+            <span id="addonLunchText">Обед в красивом месте (+250 000 IDR)</span>
+          </label>
+          <label class="addon-item">
+            <input id="addonPortTransfer" type="checkbox" />
+            <span id="addonPortTransferText">Трансфер в порт/из порта (+350 000 IDR)</span>
+          </label>
+        </div>
       </section>
 
       <section id="customBuilderSection" class="panel hidden">
@@ -200,6 +246,7 @@
             Отправить заявку
           </button>
         </form>
+        <p id="availabilityHint" class="small"></p>
         <p id="leadSubmitHint" class="small"></p>
         <p id="leadResult" class="small notice"></p>
       </section>

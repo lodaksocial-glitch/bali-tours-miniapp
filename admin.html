@@ -172,6 +172,23 @@
         gap: 8px;
       }
 
+      .analytics-cards {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+
+      .analytics-card {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px;
+        background: #faf9f6;
+      }
+
+      .analytics-card strong {
+        font-size: 18px;
+      }
+
       @media (max-width: 900px) {
         .controls {
           grid-template-columns: 1fr;
@@ -231,6 +248,41 @@
       </section>
 
       <section class="panel">
+        <h2>Календарь занятости</h2>
+        <p class="small">Укажите даты, когда водитель недоступен (формат YYYY-MM-DD, по одной дате в строке).</p>
+        <div class="locations-toolbar">
+          <textarea id="blockedDatesInput" rows="4" placeholder="2026-03-01&#10;2026-03-05"></textarea>
+          <button id="loadAvailabilityBtn">Загрузить даты</button>
+          <button id="saveAvailabilityBtn" class="secondary">Сохранить даты</button>
+        </div>
+        <p class="small" id="availabilityMeta"></p>
+      </section>
+
+      <section class="panel">
+        <h2>Аналитика</h2>
+        <p class="small">Сводка по заявкам, среднему чеку и популярным маршрутам/локациям.</p>
+        <div class="locations-toolbar">
+          <input id="analyticsHint" value="Период: за все время" readonly />
+          <button id="loadAnalyticsBtn">Обновить аналитику</button>
+        </div>
+        <p class="small" id="analyticsMeta"></p>
+        <div id="analyticsCards" class="analytics-cards"></div>
+        <div class="table-wrap" style="margin-top: 10px">
+          <table>
+            <thead>
+              <tr>
+                <th>Топ маршруты</th>
+                <th>Количество</th>
+                <th>Топ локации</th>
+                <th>Количество</th>
+              </tr>
+            </thead>
+            <tbody id="analyticsRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel">
         <h2>Редактор локаций</h2>
         <p class="small">
           Меняйте описание, фото, категорию, регион, длительность и цену входного билета без правки кода.
@@ -254,6 +306,14 @@
       const saveTokenBtn = document.getElementById("saveTokenBtn");
       const rowsEl = document.getElementById("rows");
       const metaEl = document.getElementById("meta");
+      const blockedDatesInputEl = document.getElementById("blockedDatesInput");
+      const loadAvailabilityBtn = document.getElementById("loadAvailabilityBtn");
+      const saveAvailabilityBtn = document.getElementById("saveAvailabilityBtn");
+      const availabilityMetaEl = document.getElementById("availabilityMeta");
+      const loadAnalyticsBtn = document.getElementById("loadAnalyticsBtn");
+      const analyticsMetaEl = document.getElementById("analyticsMeta");
+      const analyticsCardsEl = document.getElementById("analyticsCards");
+      const analyticsRowsEl = document.getElementById("analyticsRows");
 
       const spotSearchInputEl = document.getElementById("spotSearchInput");
       const bootstrapSpotsBtn = document.getElementById("bootstrapSpotsBtn");
@@ -290,6 +350,9 @@
       refreshBtn.addEventListener("click", loadLeads);
       statusFilterEl.addEventListener("change", loadLeads);
       searchInputEl.addEventListener("input", renderRows);
+      loadAvailabilityBtn.addEventListener("click", loadAvailability);
+      saveAvailabilityBtn.addEventListener("click", saveAvailability);
+      loadAnalyticsBtn.addEventListener("click", loadAnalytics);
 
       bootstrapSpotsBtn.addEventListener("click", bootstrapSpots);
       loadSpotsBtn.addEventListener("click", loadSpots);
@@ -328,6 +391,16 @@
       function setSpotsMeta(text, isError = false) {
         spotsMetaEl.textContent = text;
         spotsMetaEl.style.color = isError ? "#a0392a" : "#575146";
+      }
+
+      function setAvailabilityMeta(text, isError = false) {
+        availabilityMetaEl.textContent = text;
+        availabilityMetaEl.style.color = isError ? "#a0392a" : "#575146";
+      }
+
+      function setAnalyticsMeta(text, isError = false) {
+        analyticsMetaEl.textContent = text;
+        analyticsMetaEl.style.color = isError ? "#a0392a" : "#575146";
       }
 
       function normalizeSpot(raw) {
@@ -560,6 +633,138 @@ return [];`
         }
       }
 
+      async function loadAvailability() {
+        setAvailabilityMeta("Загружаю даты...");
+        try {
+          const response = await fetch("/api/availability");
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || !data.ok) {
+            throw new Error(data.error || `HTTP ${response.status}`);
+          }
+
+          const dates = Array.isArray(data.blocked_dates) ? data.blocked_dates : [];
+          blockedDatesInputEl.value = dates.join("\n");
+          setAvailabilityMeta(`Загружено недоступных дат: ${dates.length}`);
+        } catch (error) {
+          setAvailabilityMeta(`Ошибка загрузки дат: ${error.message}`, true);
+        }
+      }
+
+      async function saveAvailability() {
+        const token = tokenEl.value.trim();
+        if (!token) {
+          setAvailabilityMeta("Введите ADMIN_TOKEN перед сохранением.", true);
+          return;
+        }
+
+        const blockedDates = blockedDatesInputEl.value
+          .split("\n")
+          .map((item) => item.trim())
+          .filter(Boolean);
+
+        setAvailabilityMeta("Сохраняю даты...");
+        try {
+          const response = await fetch("/api/availability", {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Admin-Token": token,
+            },
+            body: JSON.stringify({ blocked_dates: blockedDates }),
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || !data.ok) {
+            throw new Error(data.error || `HTTP ${response.status}`);
+          }
+
+          blockedDatesInputEl.value = (data.blocked_dates || []).join("\n");
+          setAvailabilityMeta(`Сохранено недоступных дат: ${(data.blocked_dates || []).length}`);
+        } catch (error) {
+          setAvailabilityMeta(`Ошибка сохранения дат: ${error.message}`, true);
+        }
+      }
+
+      function renderAnalytics(analytics) {
+        analyticsCardsEl.innerHTML = "";
+        analyticsRowsEl.innerHTML = "";
+
+        const cards = [
+          { label: "Всего заявок", value: analytics.total_leads || 0 },
+          { label: "Общая выручка", value: formatMoney(analytics.total_revenue || 0) },
+          { label: "Средний чек", value: formatMoney(analytics.avg_check || 0) },
+        ];
+
+        const statusCounts = analytics.status_counts || {};
+        Object.keys(statusCounts).forEach((status) => {
+          cards.push({ label: `Статус: ${status}`, value: statusCounts[status] });
+        });
+
+        cards.forEach((item) => {
+          const card = document.createElement("article");
+          card.className = "analytics-card";
+          const label = document.createElement("p");
+          label.className = "small";
+          label.textContent = item.label;
+          const value = document.createElement("strong");
+          value.textContent = String(item.value);
+          card.append(label, value);
+          analyticsCardsEl.append(card);
+        });
+
+        const topRoutes = Array.isArray(analytics.top_routes) ? analytics.top_routes : [];
+        const topPlaces = Array.isArray(analytics.top_places) ? analytics.top_places : [];
+        const maxRows = Math.max(topRoutes.length, topPlaces.length, 1);
+
+        for (let idx = 0; idx < maxRows; idx += 1) {
+          const row = document.createElement("tr");
+
+          const route = topRoutes[idx] || { name: "-", count: "-" };
+          const place = topPlaces[idx] || { name: "-", count: "-" };
+
+          const routeNameCell = document.createElement("td");
+          routeNameCell.textContent = route.name;
+          const routeCountCell = document.createElement("td");
+          routeCountCell.textContent = String(route.count);
+
+          const placeNameCell = document.createElement("td");
+          placeNameCell.textContent = place.name;
+          const placeCountCell = document.createElement("td");
+          placeCountCell.textContent = String(place.count);
+
+          row.append(routeNameCell, routeCountCell, placeNameCell, placeCountCell);
+          analyticsRowsEl.append(row);
+        }
+      }
+
+      async function loadAnalytics() {
+        const token = tokenEl.value.trim();
+        if (!token) {
+          setAnalyticsMeta("Введите ADMIN_TOKEN для аналитики.", true);
+          return;
+        }
+
+        setAnalyticsMeta("Загружаю аналитику...");
+        analyticsCardsEl.innerHTML = "";
+        analyticsRowsEl.innerHTML = "";
+
+        try {
+          const response = await fetch("/api/analytics", {
+            headers: {
+              "X-Admin-Token": token,
+            },
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || !data.ok) {
+            throw new Error(data.error || `HTTP ${response.status}`);
+          }
+
+          renderAnalytics(data.analytics || {});
+          setAnalyticsMeta("Аналитика обновлена.");
+        } catch (error) {
+          setAnalyticsMeta(`Ошибка аналитики: ${error.message}`, true);
+        }
+      }
+
       function getIndexedSpots() {
         const query = spotSearchInputEl.value.trim().toLowerCase();
         return spots
@@ -771,6 +976,8 @@ return [];`
 
       loadLeads();
       loadSpots();
+      loadAvailability();
+      loadAnalytics();
     </script>
   </body>
 </html>

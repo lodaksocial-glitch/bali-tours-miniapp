@@ -15,6 +15,7 @@ DB_PATH = BASE_DIR / "leads.db"
 ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "change-me")
 ALLOWED_STATUSES = {"new", "contacted", "booked", "archived"}
 CATALOG_CONFIG_KEY = "catalog_spots"
+AVAILABILITY_CONFIG_KEY = "blocked_dates"
 TELEGRAM_BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
 TELEGRAM_ADMIN_CHAT_ID = os.getenv("ADMIN_CHAT_ID", "").strip()
 
@@ -107,6 +108,59 @@ def set_config_value(key: str, value: Any) -> str:
     return updated_at
 
 
+def parse_date_ymd(raw: str) -> str | None:
+    value = str(raw or "").strip()
+    if not value:
+        return None
+    try:
+        parsed = datetime.strptime(value, "%Y-%m-%d")
+    except ValueError:
+        return None
+    return parsed.strftime("%Y-%m-%d")
+
+
+def get_blocked_dates() -> list[str]:
+    value, _ = get_config_value(AVAILABILITY_CONFIG_KEY)
+    if not isinstance(value, list):
+        return []
+
+    result: list[str] = []
+    for item in value:
+        parsed = parse_date_ymd(str(item))
+        if parsed:
+            result.append(parsed)
+    return sorted(set(result))
+
+
+def add_blocked_date(date_value: str | None) -> None:
+    parsed = parse_date_ymd(str(date_value or ""))
+    if not parsed:
+        return
+
+    current = set(get_blocked_dates())
+    if parsed in current:
+        return
+
+    current.add(parsed)
+    set_config_value(AVAILABILITY_CONFIG_KEY, sorted(current))
+
+
+def normalize_blocked_dates_payload(items: Any) -> tuple[list[str], str | None]:
+    if not isinstance(items, list):
+        return [], "blocked_dates must be an array"
+    if len(items) > 730:
+        return [], "blocked_dates is too large"
+
+    normalized: list[str] = []
+    for idx, item in enumerate(items, start=1):
+        parsed = parse_date_ymd(str(item))
+        if not parsed:
+            return [], f"blocked_dates item #{idx} must be YYYY-MM-DD"
+        normalized.append(parsed)
+
+    return sorted(set(normalized)), None
+
+
 def normalize_spots_payload(items: Any) -> tuple[list[dict[str, Any]], str | None]:
     if not isinstance(items, list):
         return [], "items must be an array"
@@ -157,6 +211,76 @@ def normalize_spots_payload(items: Any) -> tuple[list[dict[str, Any]], str | Non
     return normalized, None
 
 
+def build_analytics() -> dict[str, Any]:
+    with get_connection() as conn:
+        rows = conn.execute(
+            """
+            SELECT id, created_at, status, route_driver_name, places_json, pricing_json
+            FROM leads
+            ORDER BY id DESC
+            """
+        ).fetchall()
+
+    total_leads = len(rows)
+    total_revenue = 0.0
+    status_counts: dict[str, int] = {status: 0 for status in sorted(ALLOWED_STATUSES)}
+    route_counts: dict[str, int] = {}
+    place_counts: dict[str, int] = {}
+    leads_by_day: dict[str, int] = {}
+
+    for row in rows:
+        status = str(row["status"] or "new").lower()
+        status_counts[status] = status_counts.get(status, 0) + 1
+
+        route_name = str(row["route_driver_name"] or "").strip() or "Без названия"
+        route_counts[route_name] = route_counts.get(route_name, 0) + 1
+
+        created_at = str(row["created_at"] or "")
+        day = created_at[:10] if len(created_at) >= 10 else "unknown"
+        leads_by_day[day] = leads_by_day.get(day, 0) + 1
+
+        pricing = json_loads(str(row["pricing_json"] or "{}"))
+        if isinstance(pricing, dict):
+            total_value = pricing.get("total", 0)
+            if isinstance(total_value, (int, float)):
+                total_revenue += float(total_value)
+
+        places = json_loads(str(row["places_json"] or "[]"))
+        if isinstance(places, list):
+            for place in places:
+                if not isinstance(place, dict):
+                    continue
+                name = str(place.get("name", "")).strip()
+                if not name:
+                    continue
+                place_counts[name] = place_counts.get(name, 0) + 1
+
+    avg_check = (total_revenue / total_leads) if total_leads else 0.0
+
+    top_routes = [
+        {"name": name, "count": count}
+        for name, count in sorted(route_counts.items(), key=lambda item: item[1], reverse=True)[:10]
+    ]
+    top_places = [
+        {"name": name, "count": count}
+        for name, count in sorted(place_counts.items(), key=lambda item: item[1], reverse=True)[:12]
+    ]
+    leads_timeline = [
+        {"date": date, "count": count}
+        for date, count in sorted(leads_by_day.items(), key=lambda item: item[0], reverse=True)[:30]
+    ]
+
+    return {
+        "total_leads": total_leads,
+        "total_revenue": int(round(total_revenue)),
+        "avg_check": int(round(avg_check)),
+        "status_counts": status_counts,
+        "top_routes": top_routes,
+        "top_places": top_places,
+        "leads_timeline": leads_timeline,
+    }
+
+
 def format_money_idr(value: Any) -> str:
     if isinstance(value, (int, float)):
         return f"{int(round(value)):,}".replace(",", " ")
@@ -173,6 +297,8 @@ def render_lead_summary(normalized: dict[str, Any], lead_id: int) -> str:
 
     pricing = normalized.get("pricing") if isinstance(normalized.get("pricing"), dict) else {}
     total = format_money_idr(pricing.get("total", 0))
+    package_id = str(pricing.get("packageId") or normalized.get("route_package_id") or "")
+    addons = pricing.get("addons") if isinstance(pricing.get("addons"), list) else []
 
     preview_names = [
         item.get("name", "")
@@ -193,6 +319,10 @@ def render_lead_summary(normalized: dict[str, Any], lead_id: int) -> str:
         f"Локаций: {places_count}",
         f"Итого: {total} IDR",
     ]
+    if package_id:
+        lines.append(f"Пакет: {package_id}")
+    if addons:
+        lines.append(f"Допуслуги: {', '.join([str(item) for item in addons])}")
     if route_preview:
         lines.append(f"Маршрут: {route_preview}")
     note = normalized.get("customer_note")
@@ -261,15 +391,24 @@ def validate_payload(data: dict[str, Any]) -> tuple[dict[str, Any], str | None]:
     if not isinstance(places, list):
         return {}, "route.places must be an array"
 
+    travel_date = parse_date_ymd(str(customer.get("travel_date", "")).strip())
+    if str(customer.get("travel_date", "")).strip() and not travel_date:
+        return {}, "customer.travel_date must be YYYY-MM-DD"
+
+    if travel_date and travel_date in set(get_blocked_dates()):
+        return {}, "Эта дата занята. Выберите другую дату поездки."
+
     normalized = {
         "created_at": datetime.now(timezone.utc).isoformat(),
         "customer_name": customer_name,
         "customer_phone": customer_phone,
-        "travel_date": str(customer.get("travel_date", "")).strip() or None,
+        "travel_date": travel_date,
         "customer_note": str(customer.get("note", "")).strip() or None,
         "source": str(data.get("source", "miniapp")).strip() or "miniapp",
         "route_days": route_days,
         "route_driver_name": str(route.get("driver_name", "")).strip(),
+        "route_package_id": str(route.get("package_id", "")).strip() or None,
+        "route_addons": route.get("addons") if isinstance(route.get("addons"), list) else [],
         "places_count": len(places),
         "places": places,
         "pricing": pricing,
@@ -328,6 +467,37 @@ def list_spots() -> Any:
             "ok": True,
             "items": items,
             "updated_at": updated_at,
+        }
+    )
+
+
+@app.get("/api/availability")
+def get_availability() -> Any:
+    blocked_dates = get_blocked_dates()
+    _, updated_at = get_config_value(AVAILABILITY_CONFIG_KEY)
+    return jsonify(
+        {
+            "ok": True,
+            "blocked_dates": blocked_dates,
+            "updated_at": updated_at,
+        }
+    )
+
+
+@app.put("/api/availability")
+def update_availability() -> Any:
+    require_admin_token()
+    data = request.get_json(silent=True) or {}
+    blocked_dates, error = normalize_blocked_dates_payload(data.get("blocked_dates"))
+    if error:
+        return jsonify({"ok": False, "error": error}), 400
+
+    saved_at = set_config_value(AVAILABILITY_CONFIG_KEY, blocked_dates)
+    return jsonify(
+        {
+            "ok": True,
+            "blocked_dates": blocked_dates,
+            "updated_at": saved_at,
         }
     )
 
@@ -431,6 +601,7 @@ def create_lead() -> Any:
 
     summary_text = render_lead_summary(normalized, int(lead_id))
     notify_admin_telegram(summary_text)
+    add_blocked_date(normalized.get("travel_date"))
 
     return jsonify({"ok": True, "lead_id": lead_id})
 
@@ -459,6 +630,13 @@ def list_leads() -> Any:
         rows = conn.execute(query, params).fetchall()
 
     return jsonify({"ok": True, "items": [map_row(row) for row in rows]})
+
+
+@app.get("/api/analytics")
+def get_analytics() -> Any:
+    require_admin_token()
+    analytics = build_analytics()
+    return jsonify({"ok": True, "analytics": analytics})
 
 
 @app.patch("/api/leads/<int:lead_id>")

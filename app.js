@@ -5,26 +5,182 @@ const MIN_ROUTE_PLACES = 5;
 const MAX_HOURS_PER_DAY = 14;
 const TRAVEL_SAME_REGION_HOURS = 0.75;
 const TRAVEL_DIFF_REGION_HOURS = 2;
+const PREMIUM_SURCHARGE = 500_000;
 
-const REGION_LABELS = {
-  bali: "Бали",
-  nusa_penida: "Нуса Пенида",
-  java: "Ява",
-  other: "Другое",
+const PACKAGES = {
+  quick: { id: "quick", price: 0 },
+  premium: { id: "premium", price: PREMIUM_SURCHARGE },
 };
 
-const CATEGORY_LABELS = {
-  all: "Все",
-  temples: "Храмы",
-  waterfalls: "Водопады",
-  terraces: "Террасы",
-  viewpoints: "Смотровые",
-  beaches: "Пляжи",
-  food: "Кафе",
-  animals: "Животные",
-  relax: "Релакс",
+const ADDON_OPTIONS = {
+  photo: { id: "photo", price: 300_000 },
+  drone: { id: "drone", price: 500_000 },
+  lunch: { id: "lunch", price: 250_000 },
+  port_transfer: { id: "port_transfer", price: 350_000 },
 };
-const SELECTABLE_CATEGORIES = Object.keys(CATEGORY_LABELS).filter(
+
+const I18N = {
+  ru: {
+    heroBadge: "Создай свой уникальный маршрут",
+    heroLead:
+      "Выберите лучшие локации, соберите тур мечты и получите незабываемое путешествие с комфортным трансфером, красивыми фото-точками и продуманным таймингом без лишней суеты.",
+    stepFormatTitle: "Шаг 1. Выберите формат",
+    readyModeTitle: "Готовые туры",
+    readyModeDesc: "Быстрый выбор готового сценария",
+    customModeTitle: "Собрать свой",
+    customModeDesc: "Категории -> локации -> ваш маршрут",
+    packageTitle: "Пакет тура",
+    packageQuickText: "Быстрый тур",
+    packageQuickDesc: "Оптимальный маршрут и комфортный темп",
+    packagePremiumText: "Премиум тур",
+    packagePremiumDesc: "Больше сопровождения и гибкий тайминг",
+    addonsTitle: "Допуслуги",
+    addonPhotoText: "Фото-сопровождение",
+    addonDroneText: "Съемка на дрон",
+    addonLunchText: "Обед в красивом месте",
+    addonPortTransferText: "Трансфер в порт/из порта",
+    chooseFormatHint: "Выберите формат, чтобы перейти к шагу 2.",
+    readyFormatHint: "Показываем готовые туры. Выберите вариант и отправьте заявку.",
+    customFormatHint: "Показываем категории и точки. Соберите маршрут и отправьте заявку.",
+    chooseCategoriesHint:
+      "Выберите категории выше, после этого появятся подходящие локации.",
+    selectAtLeastCategory: "Сначала выберите хотя бы 1 категорию.",
+    selectedCategories: "Выбрано категорий",
+    noPlacesInCategory: "По выбранным категориям пока нет локаций.",
+    addToRoute: "Добавить в маршрут",
+    removePlace: "Удалить",
+    emptyRoute: "Места пока не добавлены.",
+    minReady: "Минимум выполнен. Можно отправлять заявку.",
+    chooseMorePlaces: "Выберите еще {count} мест(а), чтобы отправить заявку.",
+    selectedPlacesCounter: "Выбрано мест: {count} из {min}+",
+    unavailableDate: "Эта дата уже занята. Выберите другую дату поездки.",
+    availableDate: "Дата свободна. Можно отправлять заявку.",
+    recommendDeparture:
+      "Рекомендуемый выезд: 06:00, чтобы избежать трафика и толп туристов.",
+    routeSummaryTitle: "Итог по маршруту",
+    daysAuto: "Дней (авто)",
+    locations: "Локаций",
+    totalTime: "Общее время (с переездами)",
+    pricingFormat: "Формат цены",
+    pricePerCar: "Цена за машину (на всех пассажиров)",
+    basePrice: `Базовая цена за ${INCLUDED_SPOTS} мест`,
+    extraPlacesLabel: `Дополнительно за точки после ${INCLUDED_SPOTS}`,
+    packageLabel: "Пакет тура",
+    addonsLabel: "Допуслуги",
+    ticketTotal: "Сумма входных билетов",
+    totalForClient: "Итого для клиента",
+    quickPackage: "Быстрый тур",
+    premiumPackage: "Премиум тур",
+    none: "нет",
+    day: "День",
+    timeAndTickets: "Время",
+    tickets: "Билеты",
+    usefulTips: "Полезные советы",
+    leadSaving: "Сохраняю заявку...",
+    fillContact: "Заполните имя и Telegram клиента",
+    invalidPeople: "Укажите корректное количество людей",
+    minPlacesError: `Для отправки заявки выберите минимум ${MIN_ROUTE_PLACES} мест`,
+    leadSaved: "Заявка #{id} сохранена и отправлена в Telegram",
+    regions: {
+      bali: "Бали",
+      nusa_penida: "Нуса Пенида",
+      java: "Ява",
+      other: "Другое",
+    },
+    categories: {
+      all: "Все",
+      temples: "Храмы",
+      waterfalls: "Водопады",
+      terraces: "Террасы",
+      viewpoints: "Смотровые",
+      beaches: "Пляжи",
+      food: "Кафе",
+      animals: "Животные",
+      relax: "Релакс",
+    },
+  },
+  en: {
+    heroBadge: "Build your unique route",
+    heroLead:
+      "Pick top spots, create your dream tour, and enjoy a smooth trip with smart timing, scenic photo points, and private transfer.",
+    stepFormatTitle: "Step 1. Choose format",
+    readyModeTitle: "Ready tours",
+    readyModeDesc: "Quick pick from prepared itineraries",
+    customModeTitle: "Build your own",
+    customModeDesc: "Categories -> locations -> your route",
+    packageTitle: "Tour package",
+    packageQuickText: "Quick Tour",
+    packageQuickDesc: "Optimized route and comfortable pace",
+    packagePremiumText: "Premium Tour",
+    packagePremiumDesc: "More guidance and flexible timing",
+    addonsTitle: "Add-ons",
+    addonPhotoText: "Photo support",
+    addonDroneText: "Drone shooting",
+    addonLunchText: "Lunch stop",
+    addonPortTransferText: "Port transfer",
+    chooseFormatHint: "Choose format to continue to step 2.",
+    readyFormatHint: "Ready tours shown. Pick one and send request.",
+    customFormatHint: "Categories and spots shown. Build route and send request.",
+    chooseCategoriesHint:
+      "Select categories above and matching locations will appear.",
+    selectAtLeastCategory: "Please select at least 1 category first.",
+    selectedCategories: "Selected categories",
+    noPlacesInCategory: "No locations found for selected categories.",
+    addToRoute: "Add to route",
+    removePlace: "Remove",
+    emptyRoute: "No places added yet.",
+    minReady: "Minimum reached. You can submit the request.",
+    chooseMorePlaces: "Choose {count} more place(s) to submit.",
+    selectedPlacesCounter: "Selected places: {count} of {min}+",
+    unavailableDate: "This date is already booked. Choose another date.",
+    availableDate: "Date is available. You can submit the request.",
+    recommendDeparture:
+      "Recommended departure: 06:00 to avoid traffic and tourist crowds.",
+    routeSummaryTitle: "Route summary",
+    daysAuto: "Days (auto)",
+    locations: "Locations",
+    totalTime: "Total time (with transfers)",
+    pricingFormat: "Pricing format",
+    pricePerCar: "Price per car (shared by all passengers)",
+    basePrice: `Base price for ${INCLUDED_SPOTS} places`,
+    extraPlacesLabel: `Extra places after ${INCLUDED_SPOTS}`,
+    packageLabel: "Package",
+    addonsLabel: "Add-ons",
+    ticketTotal: "Tickets total",
+    totalForClient: "Total",
+    quickPackage: "Quick Tour",
+    premiumPackage: "Premium Tour",
+    none: "none",
+    day: "Day",
+    timeAndTickets: "Time",
+    tickets: "Tickets",
+    usefulTips: "Useful tips",
+    leadSaving: "Saving request...",
+    fillContact: "Fill in customer name and Telegram",
+    invalidPeople: "Please enter valid number of people",
+    minPlacesError: `Choose at least ${MIN_ROUTE_PLACES} places before submit`,
+    leadSaved: "Request #{id} saved and sent to Telegram",
+    regions: {
+      bali: "Bali",
+      nusa_penida: "Nusa Penida",
+      java: "Java",
+      other: "Other",
+    },
+    categories: {
+      all: "All",
+      temples: "Temples",
+      waterfalls: "Waterfalls",
+      terraces: "Terraces",
+      viewpoints: "Viewpoints",
+      beaches: "Beaches",
+      food: "Food",
+      animals: "Animals",
+      relax: "Relax",
+    },
+  },
+};
+
+const SELECTABLE_CATEGORIES = Object.keys(I18N.ru.categories).filter(
   (key) => key !== "all"
 );
 
@@ -538,6 +694,10 @@ const state = {
   places: [],
   catalogSelectedCategories: [],
   mode: null,
+  language: "ru",
+  packageId: PACKAGES.quick.id,
+  selectedAddons: [],
+  blockedDates: [],
 };
 
 const placesEl = document.getElementById("places");
@@ -565,9 +725,70 @@ const readyRoutesSectionEl = document.getElementById("readyRoutesSection");
 const step1El = document.getElementById("step1");
 const step2El = document.getElementById("step2");
 const step3El = document.getElementById("step3");
+const packageQuickBtn = document.getElementById("packageQuickBtn");
+const packagePremiumBtn = document.getElementById("packagePremiumBtn");
+const addonPhotoEl = document.getElementById("addonPhoto");
+const addonDroneEl = document.getElementById("addonDrone");
+const addonLunchEl = document.getElementById("addonLunch");
+const addonPortTransferEl = document.getElementById("addonPortTransfer");
+const travelDateEl = document.getElementById("travelDate");
+const availabilityHintEl = document.getElementById("availabilityHint");
+const langRuBtn = document.getElementById("langRuBtn");
+const langEnBtn = document.getElementById("langEnBtn");
+const heroBadgeEl = document.getElementById("heroBadge");
+const heroLeadEl = document.getElementById("heroLead");
+const formatStepTitleEl = document.getElementById("formatStepTitle");
+const readyModeTitleEl = document.getElementById("readyModeTitle");
+const readyModeDescEl = document.getElementById("readyModeDesc");
+const customModeTitleEl = document.getElementById("customModeTitle");
+const customModeDescEl = document.getElementById("customModeDesc");
+const packageTitleEl = document.getElementById("packageTitle");
+const packageQuickTextEl = document.getElementById("packageQuickText");
+const packageQuickDescEl = document.getElementById("packageQuickDesc");
+const packagePremiumTextEl = document.getElementById("packagePremiumText");
+const packagePremiumDescEl = document.getElementById("packagePremiumDesc");
+const addonsTitleEl = document.getElementById("addonsTitle");
+const addonPhotoTextEl = document.getElementById("addonPhotoText");
+const addonDroneTextEl = document.getElementById("addonDroneText");
+const addonLunchTextEl = document.getElementById("addonLunchText");
+const addonPortTransferTextEl = document.getElementById("addonPortTransferText");
 
 const formatMoney = (value) =>
   `${new Intl.NumberFormat("ru-RU").format(Math.round(value))} IDR`;
+
+function t(key, params = {}) {
+  const dict = I18N[state.language] || I18N.ru;
+  let template = dict[key] || I18N.ru[key] || key;
+  if (typeof template !== "string") return String(template);
+  Object.entries(params).forEach(([paramKey, paramValue]) => {
+    template = template.replace(`{${paramKey}}`, String(paramValue));
+  });
+  return template;
+}
+
+function getCategoryLabel(key) {
+  return (
+    (I18N[state.language] && I18N[state.language].categories[key]) ||
+    I18N.ru.categories[key] ||
+    key
+  );
+}
+
+function getRegionLabel(key) {
+  return (
+    (I18N[state.language] && I18N[state.language].regions[key]) ||
+    I18N.ru.regions[key] ||
+    key
+  );
+}
+
+function getCustomRouteTitle() {
+  return state.language === "en" ? "Custom route" : "Индивидуальный маршрут";
+}
+
+function getReadyRouteTitle() {
+  return state.language === "en" ? "Ready route" : "Готовый маршрут";
+}
 
 function newId() {
   if (window.crypto?.randomUUID) return window.crypto.randomUUID();
@@ -593,16 +814,24 @@ function getTransferHours(prev, current) {
     : TRAVEL_DIFF_REGION_HOURS;
 }
 
-function getPricing(places) {
+function getPricing(places, packageId = state.packageId, selectedAddons = state.selectedAddons) {
   const extraPlaces = Math.max(0, places.length - INCLUDED_SPOTS);
   const surcharge = extraPlaces * EXTRA_SPOT_SURCHARGE;
   const ticketTotal = places.reduce((acc, place) => acc + place.ticket, 0);
-  const routeOnly = BASE_PRICE + surcharge;
+  const packageSurcharge = PACKAGES[packageId]?.price || 0;
+  const addonsTotal = selectedAddons.reduce((acc, addonId) => {
+    return acc + (ADDON_OPTIONS[addonId]?.price || 0);
+  }, 0);
+  const routeOnly = BASE_PRICE + surcharge + packageSurcharge + addonsTotal;
   return {
     base: BASE_PRICE,
     includedSpots: INCLUDED_SPOTS,
     extraPlaces,
     surcharge,
+    packageId,
+    packageSurcharge,
+    addons: selectedAddons,
+    addonsTotal,
     ticketTotal,
     routeOnly,
     total: routeOnly + ticketTotal,
@@ -670,23 +899,25 @@ function createPlaceCard(place, index) {
   const meta = document.createElement("div");
   meta.className = "meta";
   meta.append(
-    createTag(REGION_LABELS[place.region] || REGION_LABELS.other),
+    createTag(getRegionLabel(place.region || "other")),
     createTag(`${place.duration} ч`),
     createTag(`Билет: ${formatMoney(place.ticket)}`)
   );
 
   const desc = document.createElement("p");
   desc.className = "small";
-  desc.textContent = place.description || "Описание не добавлено";
+  desc.textContent =
+    place.description || (state.language === "en" ? "No description" : "Описание не добавлено");
 
   const tip = document.createElement("p");
   tip.className = "small";
-  tip.textContent = place.tip ? `Совет: ${place.tip}` : "";
+  tip.textContent =
+    place.tip ? `${state.language === "en" ? "Tip" : "Совет"}: ${place.tip}` : "";
 
   const del = document.createElement("button");
   del.type = "button";
   del.className = "btn btn-danger";
-  del.textContent = "Удалить";
+  del.textContent = t("removePlace");
   del.addEventListener("click", () => {
     state.places = state.places.filter((item) => item.id !== place.id);
     render();
@@ -707,7 +938,7 @@ function addPlaceFromCatalog(template) {
   if (exists) return;
 
   state.mode = "custom";
-  state.routeTitle = "Индивидуальный маршрут";
+  state.routeTitle = getCustomRouteTitle();
   state.places.push({
     id: newId(),
     name: template.name,
@@ -728,7 +959,7 @@ function renderCategoryFilters() {
   const allBtn = document.createElement("button");
   allBtn.type = "button";
   allBtn.className = "filter-chip";
-  allBtn.textContent = "Выбрать все";
+  allBtn.textContent = state.language === "en" ? "Select all" : "Выбрать все";
   allBtn.addEventListener("click", () => {
     state.catalogSelectedCategories = [...SELECTABLE_CATEGORIES];
     renderCatalog();
@@ -737,7 +968,7 @@ function renderCategoryFilters() {
   const clearBtn = document.createElement("button");
   clearBtn.type = "button";
   clearBtn.className = "filter-chip";
-  clearBtn.textContent = "Сбросить";
+  clearBtn.textContent = state.language === "en" ? "Reset" : "Сбросить";
   clearBtn.addEventListener("click", () => {
     state.catalogSelectedCategories = [];
     renderCatalog();
@@ -751,7 +982,7 @@ function renderCategoryFilters() {
     btn.className = `filter-chip ${
       state.catalogSelectedCategories.includes(category) ? "active" : ""
     }`;
-    btn.textContent = CATEGORY_LABELS[category];
+    btn.textContent = getCategoryLabel(category);
     btn.addEventListener("click", () => {
       const exists = state.catalogSelectedCategories.includes(category);
       if (exists) {
@@ -790,8 +1021,8 @@ function createCatalogCard(spot) {
   const meta = document.createElement("div");
   meta.className = "meta";
   meta.append(
-    createTag(CATEGORY_LABELS[spot.category] || CATEGORY_LABELS.all),
-    createTag(REGION_LABELS[spot.region] || REGION_LABELS.other),
+    createTag(getCategoryLabel(spot.category || "all")),
+    createTag(getRegionLabel(spot.region || "other")),
     createTag(`${spot.duration} ч`),
     createTag(`Билет: ${formatMoney(spot.ticket)}`)
   );
@@ -803,7 +1034,7 @@ function createCatalogCard(spot) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "btn";
-  button.textContent = "Добавить в маршрут";
+  button.textContent = t("addToRoute");
   button.addEventListener("click", () => addPlaceFromCatalog(spot));
 
   body.append(title, meta, desc, button);
@@ -820,15 +1051,14 @@ function renderCatalog() {
     const selectedCount = state.catalogSelectedCategories.length;
     catalogStatusEl.textContent =
       selectedCount > 0
-        ? `Выбрано категорий: ${selectedCount}`
-        : "Сначала выберите хотя бы 1 категорию.";
+        ? `${t("selectedCategories")}: ${selectedCount}`
+        : t("selectAtLeastCategory");
   }
 
   if (!state.catalogSelectedCategories.length) {
     const hint = document.createElement("p");
     hint.className = "small";
-    hint.textContent =
-      "Выберите категории выше, после этого появятся подходящие локации.";
+    hint.textContent = t("chooseCategoriesHint");
     catalogCardsEl.append(hint);
     return;
   }
@@ -840,7 +1070,7 @@ function renderCatalog() {
   if (!filtered.length) {
     const empty = document.createElement("p");
     empty.className = "small";
-    empty.textContent = "По выбранным категориям пока нет локаций.";
+    empty.textContent = t("noPlacesInCategory");
     catalogCardsEl.append(empty);
     return;
   }
@@ -859,23 +1089,41 @@ function renderSummary() {
 
   summaryEl.innerHTML = "";
 
+  const packageName =
+    state.packageId === PACKAGES.premium.id ? t("premiumPackage") : t("quickPackage");
+  const addonsText = pricing.addons.length
+    ? pricing.addons
+        .map((addonId) => {
+          if (addonId === "photo") return t("addonPhotoText");
+          if (addonId === "drone") return t("addonDroneText");
+          if (addonId === "lunch") return t("addonLunchText");
+          if (addonId === "port_transfer") return t("addonPortTransferText");
+          return addonId;
+        })
+        .join(", ")
+    : t("none");
+
   const topRows = [
-    ["Тур", state.routeTitle],
-    ["Дней (авто)", `${dayCount}`],
-    ["Локаций", `${state.places.length}`],
-    ["Общее время (с переездами)", `${totalHours.toFixed(1)} ч`],
-    ["Формат цены", "Цена за машину (на всех пассажиров)"],
-    [`Базовая цена за ${INCLUDED_SPOTS} мест`, formatMoney(pricing.base)],
+    [state.language === "en" ? "Tour" : "Тур", state.routeTitle],
+    [t("daysAuto"), `${dayCount}`],
+    [t("locations"), `${state.places.length}`],
+    [t("totalTime"), `${totalHours.toFixed(1)} ч`],
+    [t("pricingFormat"), t("pricePerCar")],
+    [t("basePrice"), formatMoney(pricing.base)],
     [
-      `Дополнительно за точки после ${INCLUDED_SPOTS} (${pricing.extraPlaces} шт.)`,
+      `${t("extraPlacesLabel")} (${pricing.extraPlaces})`,
       formatMoney(pricing.surcharge),
     ],
+    [t("packageLabel"), `${packageName} (${formatMoney(pricing.packageSurcharge)})`],
+    [t("addonsLabel"), `${addonsText} (${formatMoney(pricing.addonsTotal)})`],
     [
-      `Итог цены за ${INCLUDED_SPOTS} мест + дополнительные точки`,
+      state.language === "en"
+        ? `Route subtotal (${INCLUDED_SPOTS}+ places)`
+        : `Итог цены за ${INCLUDED_SPOTS} мест + дополнительные точки`,
       formatMoney(pricing.routeOnly),
     ],
-    ["Сумма входных билетов", formatMoney(pricing.ticketTotal)],
-    ["Итого для клиента", formatMoney(pricing.total)],
+    [t("ticketTotal"), formatMoney(pricing.ticketTotal)],
+    [t("totalForClient"), formatMoney(pricing.total)],
   ];
 
   for (const [label, value] of topRows) {
@@ -891,8 +1139,9 @@ function renderSummary() {
 
   const daysRuleNote = document.createElement("p");
   daysRuleNote.className = "small";
-  daysRuleNote.textContent =
-    "Дни считаются автоматически: если длительность дня превышает 14 часов, оставшиеся локации переносятся на следующий день.";
+  daysRuleNote.textContent = state.language === "en"
+    ? "Days are calculated automatically: if a day exceeds 14 hours, remaining spots move to the next day."
+    : "Дни считаются автоматически: если длительность дня превышает 14 часов, оставшиеся локации переносятся на следующий день.";
   summaryEl.append(daysRuleNote);
 
   itinerary.forEach((day, index) => {
@@ -901,10 +1150,10 @@ function renderSummary() {
 
     const placesText = day.places.length
       ? day.places.map((place) => place.name).join(" -> ")
-      : "Точки пока не добавлены";
+      : (state.language === "en" ? "No spots added yet" : "Точки пока не добавлены");
 
     const title = document.createElement("h3");
-    title.textContent = `День ${index + 1}`;
+    title.textContent = `${t("day")} ${index + 1}`;
 
     const route = document.createElement("p");
     route.className = "small";
@@ -912,7 +1161,7 @@ function renderSummary() {
 
     const stats = document.createElement("p");
     stats.className = "small";
-    stats.textContent = `Время: ${day.hours.toFixed(1)} ч | Билеты: ${formatMoney(day.tickets)}`;
+    stats.textContent = `${t("timeAndTickets")}: ${day.hours.toFixed(1)} ч | ${t("tickets")}: ${formatMoney(day.tickets)}`;
 
     box.append(title, route, stats);
     summaryEl.append(box);
@@ -924,7 +1173,7 @@ function renderSummary() {
     .slice(0, 6);
 
   const staticTips = [
-    "Рекомендованный выезд: 06:00, чтобы избежать трафика и толп туристов.",
+    t("recommendDeparture"),
   ];
   const allTips = [...staticTips, ...tips];
 
@@ -933,7 +1182,7 @@ function renderSummary() {
     tipsBox.className = "day-box";
 
     const title = document.createElement("h3");
-    title.textContent = "Полезные советы";
+    title.textContent = t("usefulTips");
 
     const list = document.createElement("ul");
     list.className = "small";
@@ -953,7 +1202,7 @@ function renderPlaces() {
   if (!state.places.length) {
     const empty = document.createElement("p");
     empty.className = "small";
-    empty.textContent = "Места пока не добавлены.";
+    empty.textContent = t("emptyRoute");
     placesEl.append(empty);
     return;
   }
@@ -963,24 +1212,51 @@ function renderPlaces() {
   });
 }
 
+function isBlockedDate(dateValue) {
+  if (!dateValue) return false;
+  return state.blockedDates.includes(dateValue);
+}
+
+function renderAvailability() {
+  if (!availabilityHintEl || !travelDateEl) return;
+  const dateValue = travelDateEl.value;
+  if (!dateValue) {
+    availabilityHintEl.textContent = "";
+    return;
+  }
+
+  const blocked = isBlockedDate(dateValue);
+  availabilityHintEl.textContent = blocked ? t("unavailableDate") : t("availableDate");
+  availabilityHintEl.classList.remove("notice-ok", "notice-error");
+  availabilityHintEl.classList.add(blocked ? "notice-error" : "notice-ok");
+}
+
 function renderRouteMinInfo() {
   if (!selectedCountInfoEl) return;
   const count = state.places.length;
   const missing = Math.max(0, MIN_ROUTE_PLACES - count);
-  const readyToSend = count >= MIN_ROUTE_PLACES;
+  const dateBlocked = travelDateEl ? isBlockedDate(travelDateEl.value) : false;
+  const readyToSend = count >= MIN_ROUTE_PLACES && !dateBlocked;
 
-  selectedCountInfoEl.textContent = `Выбрано мест: ${count} из ${MIN_ROUTE_PLACES}+`;
+  selectedCountInfoEl.textContent = t("selectedPlacesCounter", {
+    count,
+    min: MIN_ROUTE_PLACES,
+  });
   selectedCountInfoEl.classList.remove("notice-ok", "notice-error");
-  selectedCountInfoEl.classList.add(readyToSend ? "notice-ok" : "notice-error");
+  selectedCountInfoEl.classList.add(count >= MIN_ROUTE_PLACES ? "notice-ok" : "notice-error");
 
   if (leadSubmitBtn) {
     leadSubmitBtn.disabled = !readyToSend;
   }
 
   if (leadSubmitHintEl) {
-    leadSubmitHintEl.textContent = readyToSend
-      ? "Минимум выполнен. Можно отправлять заявку."
-      : `Выберите еще ${missing} мест(а), чтобы отправить заявку.`;
+    if (dateBlocked) {
+      leadSubmitHintEl.textContent = t("unavailableDate");
+    } else {
+      leadSubmitHintEl.textContent = readyToSend
+        ? t("minReady")
+        : t("chooseMorePlaces", { count: missing });
+    }
     leadSubmitHintEl.classList.remove("notice-ok", "notice-error");
     leadSubmitHintEl.classList.add(readyToSend ? "notice-ok" : "notice-error");
   }
@@ -1006,14 +1282,61 @@ function renderMode() {
 
   if (modeHintEl) {
     if (!state.mode) {
-      modeHintEl.textContent = "Выберите формат, чтобы перейти к шагу 2.";
+      modeHintEl.textContent = t("chooseFormatHint");
     } else if (isReady) {
-      modeHintEl.textContent =
-        "Показываем готовые туры. Выберите вариант и отправьте заявку.";
+      modeHintEl.textContent = t("readyFormatHint");
     } else {
-      modeHintEl.textContent =
-        "Показываем категории и точки. Соберите маршрут и отправьте заявку.";
+      modeHintEl.textContent = t("customFormatHint");
     }
+  }
+}
+
+function renderPackage() {
+  if (packageQuickBtn) {
+    packageQuickBtn.classList.toggle("active", state.packageId === PACKAGES.quick.id);
+  }
+  if (packagePremiumBtn) {
+    packagePremiumBtn.classList.toggle("active", state.packageId === PACKAGES.premium.id);
+  }
+}
+
+function renderAddons() {
+  if (addonPhotoEl) addonPhotoEl.checked = state.selectedAddons.includes("photo");
+  if (addonDroneEl) addonDroneEl.checked = state.selectedAddons.includes("drone");
+  if (addonLunchEl) addonLunchEl.checked = state.selectedAddons.includes("lunch");
+  if (addonPortTransferEl) addonPortTransferEl.checked = state.selectedAddons.includes("port_transfer");
+}
+
+function renderLanguage() {
+  if (langRuBtn) langRuBtn.classList.toggle("active", state.language === "ru");
+  if (langEnBtn) langEnBtn.classList.toggle("active", state.language === "en");
+
+  if (heroBadgeEl) heroBadgeEl.textContent = t("heroBadge");
+  if (heroLeadEl) heroLeadEl.textContent = t("heroLead");
+  if (formatStepTitleEl) formatStepTitleEl.textContent = t("stepFormatTitle");
+  if (readyModeTitleEl) readyModeTitleEl.textContent = t("readyModeTitle");
+  if (readyModeDescEl) readyModeDescEl.textContent = t("readyModeDesc");
+  if (customModeTitleEl) customModeTitleEl.textContent = t("customModeTitle");
+  if (customModeDescEl) customModeDescEl.textContent = t("customModeDesc");
+  if (packageTitleEl) packageTitleEl.textContent = t("packageTitle");
+  if (packageQuickTextEl) packageQuickTextEl.textContent = t("packageQuickText");
+  if (packageQuickDescEl) packageQuickDescEl.textContent = t("packageQuickDesc");
+  if (packagePremiumTextEl) packagePremiumTextEl.textContent = t("packagePremiumText");
+  if (packagePremiumDescEl) {
+    packagePremiumDescEl.textContent = `${t("packagePremiumDesc")} (+${formatMoney(PREMIUM_SURCHARGE)})`;
+  }
+  if (addonsTitleEl) addonsTitleEl.textContent = t("addonsTitle");
+  if (addonPhotoTextEl) {
+    addonPhotoTextEl.textContent = `${t("addonPhotoText")} (+${formatMoney(ADDON_OPTIONS.photo.price)})`;
+  }
+  if (addonDroneTextEl) {
+    addonDroneTextEl.textContent = `${t("addonDroneText")} (+${formatMoney(ADDON_OPTIONS.drone.price)})`;
+  }
+  if (addonLunchTextEl) {
+    addonLunchTextEl.textContent = `${t("addonLunchText")} (+${formatMoney(ADDON_OPTIONS.lunch.price)})`;
+  }
+  if (addonPortTransferTextEl) {
+    addonPortTransferTextEl.textContent = `${t("addonPortTransferText")} (+${formatMoney(ADDON_OPTIONS.port_transfer.price)})`;
   }
 }
 
@@ -1039,6 +1362,9 @@ function selectMode(mode) {
 }
 
 function render() {
+  renderLanguage();
+  renderPackage();
+  renderAddons();
   renderMode();
   renderSteps();
   if (state.mode === "custom") {
@@ -1046,6 +1372,7 @@ function render() {
   }
   renderPlaces();
   renderSummary();
+  renderAvailability();
   renderRouteMinInfo();
   setupTelegramButton();
 }
@@ -1097,6 +1424,21 @@ async function syncCatalogSpots() {
   }
 }
 
+async function syncAvailability() {
+  try {
+    const response = await fetch("/api/availability");
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.ok) return;
+    if (Array.isArray(data.blocked_dates)) {
+      state.blockedDates = data.blocked_dates;
+      renderAvailability();
+      renderRouteMinInfo();
+    }
+  } catch (error) {
+    // Availability is optional; keep submit flow if API is unavailable.
+  }
+}
+
 function showLeadResult(message, isError = false) {
   leadResultEl.textContent = message;
   leadResultEl.classList.remove("notice-ok", "notice-error");
@@ -1107,9 +1449,11 @@ function buildLeadPayload() {
   const routeDays = buildItinerary(getSegments(state.places)).length;
   const peopleCount = Number(document.getElementById("customerPeople").value) || 1;
   const noteRaw = document.getElementById("customerNote").value.trim();
+  const peoplePrefix = state.language === "en" ? "People" : "Людей";
   const noteWithPeople = noteRaw
-    ? `Людей: ${peopleCount}. ${noteRaw}`
-    : `Людей: ${peopleCount}.`;
+    ? `${peoplePrefix}: ${peopleCount}. ${noteRaw}`
+    : `${peoplePrefix}: ${peopleCount}.`;
+  const pricing = getPricing(state.places);
   return {
     customer: {
       name: document.getElementById("customerName").value.trim(),
@@ -1121,10 +1465,13 @@ function buildLeadPayload() {
     route: {
       days: routeDays,
       driver_name: state.routeTitle,
+      package_id: state.packageId,
+      addons: state.selectedAddons,
       places: state.places,
     },
-    pricing: getPricing(state.places),
+    pricing,
     source: "telegram-miniapp",
+    language: state.language,
     telegram_user: getTelegramUser(),
   };
 }
@@ -1159,6 +1506,8 @@ function sendLeadToTelegram(payload, leadId = null) {
     people_count: payload.customer.people_count,
     travel_date: payload.customer.travel_date,
     days: payload.route.days,
+    package_id: payload.route.package_id,
+    addons: payload.route.addons,
     places_count: payload.route.places.length,
     total_price: payload.pricing.total,
     route_preview: payload.route.places.map((item) => item.name).slice(0, 6),
@@ -1197,32 +1546,36 @@ function applyNamedPreset(routeTitle, placeNames) {
 leadForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
+  if (travelDateEl && isBlockedDate(travelDateEl.value)) {
+    showLeadResult(t("unavailableDate"), true);
+    return;
+  }
+
   if (state.places.length < MIN_ROUTE_PLACES) {
-    showLeadResult(
-      `Для отправки заявки выберите минимум ${MIN_ROUTE_PLACES} мест`,
-      true
-    );
+    showLeadResult(t("minPlacesError"), true);
     return;
   }
 
   const payload = buildLeadPayload();
   if (!payload.customer.name || !payload.customer.phone) {
-    showLeadResult("Заполните имя и Telegram клиента", true);
+    showLeadResult(t("fillContact"), true);
     return;
   }
   if (!payload.customer.people_count || payload.customer.people_count < 1) {
-    showLeadResult("Укажите корректное количество людей", true);
+    showLeadResult(t("invalidPeople"), true);
     return;
   }
 
-  showLeadResult("Сохраняю заявку...");
+  showLeadResult(t("leadSaving"));
 
   try {
     const result = await saveLead(payload);
     sendLeadToTelegram(payload, result.lead_id);
-    showLeadResult(`Заявка #${result.lead_id} сохранена и отправлена в Telegram`);
+    showLeadResult(t("leadSaved", { id: result.lead_id }));
     leadForm.reset();
     document.getElementById("customerPeople").value = "2";
+    state.selectedAddons = [];
+    render();
   } catch (error) {
     showLeadResult(error.message, true);
   }
@@ -1300,6 +1653,69 @@ if (addActiveRouteBtn) {
   });
 }
 
+function setPackage(packageId) {
+  state.packageId = packageId;
+  renderSummary();
+  renderPackage();
+}
+
+function syncAddonsFromUI() {
+  const selected = [];
+  if (addonPhotoEl && addonPhotoEl.checked) selected.push("photo");
+  if (addonDroneEl && addonDroneEl.checked) selected.push("drone");
+  if (addonLunchEl && addonLunchEl.checked) selected.push("lunch");
+  if (addonPortTransferEl && addonPortTransferEl.checked) selected.push("port_transfer");
+  state.selectedAddons = selected;
+  renderSummary();
+}
+
+function applyLanguage(lang) {
+  const prevLanguage = state.language;
+  state.language = lang === "en" ? "en" : "ru";
+  if (
+    state.routeTitle === (prevLanguage === "en" ? "Custom route" : "Индивидуальный маршрут")
+  ) {
+    state.routeTitle = getCustomRouteTitle();
+  }
+  if (
+    state.routeTitle === (prevLanguage === "en" ? "Ready route" : "Готовый маршрут")
+  ) {
+    state.routeTitle = getReadyRouteTitle();
+  }
+  if (state.language === "en") {
+    if (step1El) step1El.querySelector(".step-text").textContent = "Format";
+    if (step2El) step2El.querySelector(".step-text").textContent = "Locations";
+    if (step3El) step3El.querySelector(".step-text").textContent = "Contacts";
+  } else {
+    if (step1El) step1El.querySelector(".step-text").textContent = "Формат";
+    if (step2El) step2El.querySelector(".step-text").textContent = "Локации";
+    if (step3El) step3El.querySelector(".step-text").textContent = "Контакты";
+  }
+  render();
+}
+
+if (packageQuickBtn) {
+  packageQuickBtn.addEventListener("click", () => setPackage(PACKAGES.quick.id));
+}
+if (packagePremiumBtn) {
+  packagePremiumBtn.addEventListener("click", () => setPackage(PACKAGES.premium.id));
+}
+
+if (addonPhotoEl) addonPhotoEl.addEventListener("change", syncAddonsFromUI);
+if (addonDroneEl) addonDroneEl.addEventListener("change", syncAddonsFromUI);
+if (addonLunchEl) addonLunchEl.addEventListener("change", syncAddonsFromUI);
+if (addonPortTransferEl) addonPortTransferEl.addEventListener("change", syncAddonsFromUI);
+
+if (travelDateEl) {
+  travelDateEl.addEventListener("change", () => {
+    renderAvailability();
+    renderRouteMinInfo();
+  });
+}
+
+if (langRuBtn) langRuBtn.addEventListener("click", () => applyLanguage("ru"));
+if (langEnBtn) langEnBtn.addEventListener("click", () => applyLanguage("en"));
+
 if (chooseReadyModeBtn) {
   chooseReadyModeBtn.addEventListener("click", () => {
     selectMode("ready");
@@ -1314,7 +1730,7 @@ if (chooseCustomModeBtn) {
 
 clearAllBtn.addEventListener("click", () => {
   state.routeTitle =
-    state.mode === "ready" ? "Готовый маршрут" : "Индивидуальный маршрут";
+    state.mode === "ready" ? getReadyRouteTitle() : getCustomRouteTitle();
   state.places = [];
   render();
 });
@@ -1344,5 +1760,12 @@ function sendRouteToTelegramQuick() {
   tg.sendData(JSON.stringify(payload));
 }
 
+const telegramLang = String(getTelegramUser()?.language_code || "").toLowerCase();
+if (telegramLang.startsWith("en")) {
+  state.language = "en";
+  state.routeTitle = "Custom route";
+}
+
 render();
 syncCatalogSpots();
+syncAvailability();

@@ -125,6 +125,39 @@ def render_summary(payload: dict[str, Any], lead_id: Any = None) -> str:
     return "\n".join(lines)
 
 
+def render_customer_followup(payload: dict[str, Any], lead_id: Any, language_code: str) -> str:
+    customer = payload.get("customer", {})
+    route = payload.get("route", {})
+    pricing = payload.get("pricing", {})
+
+    is_en = str(language_code or "").lower().startswith("en")
+    travel_date = customer.get("travel_date") or "-"
+    days = route.get("days", "-")
+    total = pricing.get("total", 0)
+    total_str = f"{int(total):,}".replace(",", " ") if isinstance(total, (int, float)) else str(total)
+
+    if is_en:
+        return (
+            f"Your request is confirmed. Booking ID: #{lead_id}\n"
+            f"Travel date: {travel_date}\n"
+            f"Trip length: {days} day(s)\n"
+            f"Estimated total: {total_str} IDR (per car)\n\n"
+            "Recommended departure: 06:00 to avoid traffic and crowds.\n"
+            "What to bring: swimwear, towel, spare clothes, comfy shoes, sunscreen, cash, charged phone/camera.\n\n"
+            "I will contact you soon to finalize details."
+        )
+
+    return (
+        f"Ваша заявка подтверждена. Номер: #{lead_id}\n"
+        f"Дата поездки: {travel_date}\n"
+        f"Длительность: {days} дн.\n"
+        f"Ориентировочная стоимость: {total_str} IDR (за машину)\n\n"
+        "Рекомендуемый выезд: 06:00, чтобы избежать трафика и толп.\n"
+        "Что взять с собой: купальник, полотенце, сменную одежду, удобную обувь, крем от солнца, наличные, заряженный телефон/камеру.\n\n"
+        "Скоро свяжусь с вами для подтверждения деталей."
+    )
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not update.message:
         return
@@ -189,7 +222,13 @@ async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE
             LOGGER.warning("Failed to send admin notification: %s", error)
 
     if lead_id:
-        await message.reply_text(f"Заявка принята. Номер: #{lead_id}")
+        await message.reply_text(
+            render_customer_followup(
+                lead_payload,
+                lead_id,
+                getattr(user, "language_code", "") or "",
+            )
+        )
     elif is_preview_only:
         await message.reply_text("Маршрут отправлен. Для заявки заполните форму клиента в Mini App.")
     else:
