@@ -27,44 +27,26 @@
         <div class="hero-grid">
           <article class="hero-card">
             <h2>Базовая цена</h2>
-            <p><strong>1 200 000 IDR</strong> за стандартный маршрут</p>
+            <p><strong>1 200 000 IDR</strong> за маршрут из 5 мест</p>
           </article>
           <article class="hero-card">
             <h2>Что включено</h2>
-            <p>До <strong>5 мест на Бали</strong> в базовом пакете</p>
+            <p><strong>5 выбранных локаций</strong> в базовом пакете</p>
           </article>
           <article class="hero-card">
             <h2>Доплата</h2>
-            <p><strong>+200 000 IDR</strong> за каждую точку вне Бали</p>
+            <p><strong>+100 000 IDR</strong> за каждую точку после 5</p>
           </article>
         </div>
       </header>
-
-      <section class="panel">
-        <div class="panel-head">
-          <h2>Настройки маршрута</h2>
-        </div>
-        <div class="grid-2">
-          <label>
-            Длительность
-            <select id="days">
-              <option value="1">1 день</option>
-              <option value="2">2 дня</option>
-              <option value="3">3 дня</option>
-            </select>
-          </label>
-          <label>
-            Ваше имя/бренд
-            <input id="driverName" value="Авторский тур с водителем" />
-          </label>
-        </div>
-      </section>
 
       <section class="panel">
         <div class="panel-head row">
           <h2>Каталог локаций</h2>
           <p id="routeMinInfo" class="small"></p>
         </div>
+        <p class="small">Шаг 1: выберите категории. Шаг 2: добавьте точки в маршрут.</p>
+        <p id="catalogStatus" class="small"></p>
         <div id="categoryFilters" class="category-filters"></div>
         <div id="catalogCards" class="catalog-grid"></div>
       </section>
@@ -160,16 +142,12 @@
             <input id="customerName" required placeholder="Например: Анна" />
           </label>
           <label>
-            Телефон / WhatsApp
-            <input id="customerPhone" required placeholder="+62..." />
+            Telegram клиента
+            <input id="customerTelegram" required placeholder="@username или t.me/..." />
           </label>
           <label>
             Дата поездки
             <input id="travelDate" type="date" />
-          </label>
-          <label>
-            Канал
-            <input id="leadSource" value="telegram-miniapp" />
           </label>
           <label class="full">
             Комментарий клиента

@@ -1,7 +1,8 @@
 const BASE_PRICE = 1_200_000;
-const OTHER_REGION_SURCHARGE = 200_000;
-const INCLUDED_BALI_SPOTS = 5;
+const INCLUDED_SPOTS = 5;
+const EXTRA_SPOT_SURCHARGE = 100_000;
 const MIN_ROUTE_PLACES = 5;
+const MAX_HOURS_PER_DAY = 14;
 const TRAVEL_SAME_REGION_HOURS = 0.75;
 const TRAVEL_DIFF_REGION_HOURS = 2;
 
@@ -23,6 +24,9 @@ const CATEGORY_LABELS = {
   animals: "Животные",
   relax: "Релакс",
 };
+const SELECTABLE_CATEGORIES = Object.keys(CATEGORY_LABELS).filter(
+  (key) => key !== "all"
+);
 
 const CATEGORY_IMAGES = {
   temples:
@@ -517,17 +521,14 @@ const CATALOG_SPOTS = [
 ];
 
 const state = {
-  days: 1,
   driverName: "Авторский тур с водителем",
   places: [],
-  catalogCategory: "all",
+  catalogSelectedCategories: [],
 };
 
 const form = document.getElementById("placeForm");
 const placesEl = document.getElementById("places");
 const summaryEl = document.getElementById("summary");
-const daysEl = document.getElementById("days");
-const driverNameEl = document.getElementById("driverName");
 const addPresetBtn = document.getElementById("addPreset");
 const addNorthCentralPresetBtn = document.getElementById("addNorthCentralPreset");
 const addNusaPenidaPresetBtn = document.getElementById("addNusaPenidaPreset");
@@ -535,6 +536,7 @@ const clearAllBtn = document.getElementById("clearAll");
 const leadForm = document.getElementById("leadForm");
 const leadResultEl = document.getElementById("leadResult");
 const routeMinInfoEl = document.getElementById("routeMinInfo");
+const catalogStatusEl = document.getElementById("catalogStatus");
 const categoryFiltersEl = document.getElementById("categoryFilters");
 const catalogCardsEl = document.getElementById("catalogCards");
 
@@ -565,21 +567,19 @@ function getTransferHours(prev, current) {
     : TRAVEL_DIFF_REGION_HOURS;
 }
 
-function getOtherRegionCount(places) {
-  return places.filter((place) => place.region !== "bali").length;
-}
-
 function getPricing(places) {
-  const otherRegionCount = getOtherRegionCount(places);
-  const surcharge = otherRegionCount * OTHER_REGION_SURCHARGE;
+  const extraPlaces = Math.max(0, places.length - INCLUDED_SPOTS);
+  const surcharge = extraPlaces * EXTRA_SPOT_SURCHARGE;
   const ticketTotal = places.reduce((acc, place) => acc + place.ticket, 0);
+  const routeOnly = BASE_PRICE + surcharge;
   return {
     base: BASE_PRICE,
+    includedSpots: INCLUDED_SPOTS,
+    extraPlaces,
     surcharge,
     ticketTotal,
-    total: BASE_PRICE + surcharge + ticketTotal,
-    otherRegionCount,
-    baliCount: places.filter((place) => place.region === "bali").length,
+    routeOnly,
+    total: routeOnly + ticketTotal,
   };
 }
 
@@ -592,30 +592,26 @@ function getSegments(places) {
   });
 }
 
-function buildItinerary(segments, days) {
-  const result = Array.from({ length: days }, () => ({
-    places: [],
-    hours: 0,
-    tickets: 0,
-  }));
-  if (!segments.length) return result;
+function buildItinerary(segments, maxHoursPerDay = MAX_HOURS_PER_DAY) {
+  if (!segments.length) return [];
 
-  const totalHours = segments.reduce((acc, place) => acc + place.segmentHours, 0);
-  const targetPerDay = totalHours / days;
-
+  const result = [{ places: [], hours: 0, tickets: 0 }];
   let dayIndex = 0;
+
   for (const segment of segments) {
-    const current = result[dayIndex];
+    let current = result[dayIndex];
     const hasPlaces = current.places.length > 0;
     const nextHours = current.hours + segment.segmentHours;
 
-    if (dayIndex < days - 1 && hasPlaces && nextHours > targetPerDay * 1.2) {
+    if (hasPlaces && nextHours > maxHoursPerDay) {
+      result.push({ places: [], hours: 0, tickets: 0 });
       dayIndex += 1;
+      current = result[dayIndex];
     }
 
-    result[dayIndex].places.push(segment);
-    result[dayIndex].hours += segment.segmentHours;
-    result[dayIndex].tickets += segment.ticket;
+    current.places.push(segment);
+    current.hours += segment.segmentHours;
+    current.tickets += segment.ticket;
   }
 
   return result;
@@ -701,16 +697,45 @@ function renderCategoryFilters() {
   if (!categoryFiltersEl) return;
   categoryFiltersEl.innerHTML = "";
 
-  const categories = Object.keys(CATEGORY_LABELS);
-  categories.forEach((category) => {
+  const allBtn = document.createElement("button");
+  allBtn.type = "button";
+  allBtn.className = "filter-chip";
+  allBtn.textContent = "Выбрать все";
+  allBtn.addEventListener("click", () => {
+    state.catalogSelectedCategories = [...SELECTABLE_CATEGORIES];
+    renderCatalog();
+  });
+
+  const clearBtn = document.createElement("button");
+  clearBtn.type = "button";
+  clearBtn.className = "filter-chip";
+  clearBtn.textContent = "Сбросить";
+  clearBtn.addEventListener("click", () => {
+    state.catalogSelectedCategories = [];
+    renderCatalog();
+  });
+
+  categoryFiltersEl.append(allBtn, clearBtn);
+
+  SELECTABLE_CATEGORIES.forEach((category) => {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = `filter-chip ${
-      state.catalogCategory === category ? "active" : ""
+      state.catalogSelectedCategories.includes(category) ? "active" : ""
     }`;
     btn.textContent = CATEGORY_LABELS[category];
     btn.addEventListener("click", () => {
-      state.catalogCategory = category;
+      const exists = state.catalogSelectedCategories.includes(category);
+      if (exists) {
+        state.catalogSelectedCategories = state.catalogSelectedCategories.filter(
+          (item) => item !== category
+        );
+      } else {
+        state.catalogSelectedCategories = [
+          ...state.catalogSelectedCategories,
+          category,
+        ];
+      }
       renderCatalog();
     });
     categoryFiltersEl.append(btn);
@@ -763,10 +788,34 @@ function renderCatalog() {
   renderCategoryFilters();
   catalogCardsEl.innerHTML = "";
 
+  if (catalogStatusEl) {
+    const selectedCount = state.catalogSelectedCategories.length;
+    catalogStatusEl.textContent =
+      selectedCount > 0
+        ? `Выбрано категорий: ${selectedCount}`
+        : "Сначала выберите хотя бы 1 категорию.";
+  }
+
+  if (!state.catalogSelectedCategories.length) {
+    const hint = document.createElement("p");
+    hint.className = "small";
+    hint.textContent =
+      "Выберите категории выше, после этого появятся подходящие локации.";
+    catalogCardsEl.append(hint);
+    return;
+  }
+
   const filtered = CATALOG_SPOTS.filter((spot) => {
-    if (state.catalogCategory === "all") return true;
-    return spot.category === state.catalogCategory;
+    return state.catalogSelectedCategories.includes(spot.category);
   });
+
+  if (!filtered.length) {
+    const empty = document.createElement("p");
+    empty.className = "small";
+    empty.textContent = "По выбранным категориям пока нет локаций.";
+    catalogCardsEl.append(empty);
+    return;
+  }
 
   filtered.forEach((spot) => {
     catalogCardsEl.append(createCatalogCard(spot));
@@ -775,26 +824,26 @@ function renderCatalog() {
 
 function renderSummary() {
   const segments = getSegments(state.places);
-  const itinerary = buildItinerary(segments, state.days);
+  const itinerary = buildItinerary(segments);
   const pricing = getPricing(state.places);
   const totalHours = segments.reduce((acc, place) => acc + place.segmentHours, 0);
-
-  const baliLimitInfo =
-    pricing.baliCount > INCLUDED_BALI_SPOTS
-      ? `Мест на Бали: ${pricing.baliCount} (в базовой цене включено ${INCLUDED_BALI_SPOTS})`
-      : `Мест на Бали: ${pricing.baliCount} из ${INCLUDED_BALI_SPOTS} включенных`;
+  const dayCount = itinerary.length;
 
   summaryEl.innerHTML = "";
 
   const topRows = [
     ["Тур", state.driverName],
-    ["Дней", `${state.days}`],
+    ["Дней (авто)", `${dayCount}`],
     ["Локаций", `${state.places.length}`],
     ["Общее время (с переездами)", `${totalHours.toFixed(1)} ч`],
-    ["Базовый пакет", formatMoney(pricing.base)],
+    [`Базовая цена за ${INCLUDED_SPOTS} мест`, formatMoney(pricing.base)],
     [
-      `Доплата за точки вне Бали (${pricing.otherRegionCount} шт.)`,
+      `Дополнительно за точки после ${INCLUDED_SPOTS} (${pricing.extraPlaces} шт.)`,
       formatMoney(pricing.surcharge),
+    ],
+    [
+      `Итог цены за ${INCLUDED_SPOTS} мест + дополнительные точки`,
+      formatMoney(pricing.routeOnly),
     ],
     ["Сумма входных билетов", formatMoney(pricing.ticketTotal)],
     ["Итого для клиента", formatMoney(pricing.total)],
@@ -811,10 +860,11 @@ function renderSummary() {
     summaryEl.append(row);
   }
 
-  const limitNote = document.createElement("p");
-  limitNote.className = "small";
-  limitNote.textContent = baliLimitInfo;
-  summaryEl.append(limitNote);
+  const daysRuleNote = document.createElement("p");
+  daysRuleNote.className = "small";
+  daysRuleNote.textContent =
+    "Дни считаются автоматически: если длительность дня превышает 14 часов, оставшиеся локации переносятся на следующий день.";
+  summaryEl.append(daysRuleNote);
 
   itinerary.forEach((day, index) => {
     const box = document.createElement("div");
@@ -844,7 +894,12 @@ function renderSummary() {
     .filter(Boolean)
     .slice(0, 6);
 
-  if (tips.length) {
+  const staticTips = [
+    "Рекомендованный выезд: 06:00, чтобы избежать трафика и толп туристов.",
+  ];
+  const allTips = [...staticTips, ...tips];
+
+  if (allTips.length) {
     const tipsBox = document.createElement("div");
     tipsBox.className = "day-box";
 
@@ -853,7 +908,7 @@ function renderSummary() {
 
     const list = document.createElement("ul");
     list.className = "small";
-    tips.forEach((tip) => {
+    allTips.forEach((tip) => {
       const item = document.createElement("li");
       item.textContent = tip;
       list.append(item);
@@ -903,20 +958,21 @@ function showLeadResult(message, isError = false) {
 }
 
 function buildLeadPayload() {
+  const routeDays = buildItinerary(getSegments(state.places)).length;
   return {
     customer: {
       name: document.getElementById("customerName").value.trim(),
-      phone: document.getElementById("customerPhone").value.trim(),
+      phone: document.getElementById("customerTelegram").value.trim(),
       travel_date: document.getElementById("travelDate").value,
       note: document.getElementById("customerNote").value.trim(),
     },
     route: {
-      days: state.days,
+      days: routeDays,
       driver_name: state.driverName,
       places: state.places,
     },
     pricing: getPricing(state.places),
-    source: (document.getElementById("leadSource").value || "miniapp").trim(),
+    source: "telegram-miniapp",
     telegram_user: getTelegramUser(),
   };
 }
@@ -947,6 +1003,7 @@ function sendLeadToTelegram(payload, leadId = null) {
     lead_id: leadId,
     customer_name: payload.customer.name,
     customer_phone: payload.customer.phone,
+    customer_telegram: payload.customer.phone,
     travel_date: payload.customer.travel_date,
     days: payload.route.days,
     places_count: payload.route.places.length,
@@ -957,10 +1014,8 @@ function sendLeadToTelegram(payload, leadId = null) {
   tg.sendData(JSON.stringify(summary));
 }
 
-function applyPreset(places, days = 1) {
+function applyPreset(places) {
   state.places = places.map((place) => ({ ...place, id: newId() }));
-  state.days = days;
-  daysEl.value = String(days);
   render();
 }
 
@@ -999,7 +1054,7 @@ leadForm.addEventListener("submit", async (event) => {
 
   const payload = buildLeadPayload();
   if (!payload.customer.name || !payload.customer.phone) {
-    showLeadResult("Заполните имя и телефон клиента", true);
+    showLeadResult("Заполните имя и Telegram клиента", true);
     return;
   }
 
@@ -1010,20 +1065,9 @@ leadForm.addEventListener("submit", async (event) => {
     sendLeadToTelegram(payload, result.lead_id);
     showLeadResult(`Заявка #${result.lead_id} сохранена и отправлена в Telegram`);
     leadForm.reset();
-    document.getElementById("leadSource").value = "telegram-miniapp";
   } catch (error) {
     showLeadResult(error.message, true);
   }
-});
-
-daysEl.addEventListener("change", (event) => {
-  state.days = Number(event.target.value);
-  render();
-});
-
-driverNameEl.addEventListener("input", (event) => {
-  state.driverName = event.target.value.trim() || "Авторский тур с водителем";
-  render();
 });
 
 addPresetBtn.addEventListener("click", () => {
@@ -1082,7 +1126,7 @@ addPresetBtn.addEventListener("click", () => {
     },
   ];
 
-  applyPreset(presets, 1);
+  applyPreset(presets);
 });
 
 addNorthCentralPresetBtn.addEventListener("click", () => {
@@ -1199,7 +1243,7 @@ addNorthCentralPresetBtn.addEventListener("click", () => {
     },
   ];
 
-  applyPreset(northCentralPreset, 1);
+  applyPreset(northCentralPreset);
 });
 
 addNusaPenidaPresetBtn.addEventListener("click", () => {
@@ -1272,7 +1316,7 @@ addNusaPenidaPresetBtn.addEventListener("click", () => {
     },
   ];
 
-  applyPreset(nusaPenidaPreset, 1);
+  applyPreset(nusaPenidaPreset);
 });
 
 clearAllBtn.addEventListener("click", () => {
@@ -1296,10 +1340,11 @@ function setupTelegramButton() {
 function sendRouteToTelegramQuick() {
   const tg = window.Telegram?.WebApp;
   if (!tg) return;
+  const routeDays = buildItinerary(getSegments(state.places)).length;
 
   const payload = {
     route_preview: state.places.map((item) => item.name).slice(0, 8),
-    days: state.days,
+    days: routeDays,
     total_price: getPricing(state.places).total,
     places_count: state.places.length,
   };
