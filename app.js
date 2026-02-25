@@ -535,19 +535,34 @@ const state = {
   routeTitle: "Индивидуальный маршрут",
   places: [],
   catalogSelectedCategories: [],
+  mode: null,
 };
 
 const placesEl = document.getElementById("places");
 const summaryEl = document.getElementById("summary");
 const addPaperhillsRouteBtn = document.getElementById("addPaperhillsRoute");
 const addEastBaliRouteBtn = document.getElementById("addEastBaliRoute");
+const addUbudCenterRouteBtn = document.getElementById("addUbudCenterRoute");
+const addNorthSideRouteBtn = document.getElementById("addNorthSideRoute");
+const addSpiritualRouteBtn = document.getElementById("addSpiritualRoute");
+const addActiveRouteBtn = document.getElementById("addActiveRoute");
 const clearAllBtn = document.getElementById("clearAll");
 const leadForm = document.getElementById("leadForm");
 const leadResultEl = document.getElementById("leadResult");
-const routeMinInfoEl = document.getElementById("routeMinInfo");
+const selectedCountInfoEl = document.getElementById("selectedCountInfo");
+const leadSubmitBtn = document.getElementById("leadSubmitBtn");
+const leadSubmitHintEl = document.getElementById("leadSubmitHint");
 const catalogStatusEl = document.getElementById("catalogStatus");
 const categoryFiltersEl = document.getElementById("categoryFilters");
 const catalogCardsEl = document.getElementById("catalogCards");
+const chooseReadyModeBtn = document.getElementById("chooseReadyMode");
+const chooseCustomModeBtn = document.getElementById("chooseCustomMode");
+const modeHintEl = document.getElementById("modeHint");
+const customBuilderSectionEl = document.getElementById("customBuilderSection");
+const readyRoutesSectionEl = document.getElementById("readyRoutesSection");
+const step1El = document.getElementById("step1");
+const step2El = document.getElementById("step2");
+const step3El = document.getElementById("step3");
 
 const formatMoney = (value) =>
   `${new Intl.NumberFormat("ru-RU").format(Math.round(value))} IDR`;
@@ -689,6 +704,7 @@ function addPlaceFromCatalog(template) {
   );
   if (exists) return;
 
+  state.mode = "custom";
   state.routeTitle = "Индивидуальный маршрут";
   state.places.push({
     id: newId(),
@@ -846,6 +862,7 @@ function renderSummary() {
     ["Дней (авто)", `${dayCount}`],
     ["Локаций", `${state.places.length}`],
     ["Общее время (с переездами)", `${totalHours.toFixed(1)} ч`],
+    ["Формат цены", "Цена за машину (на всех пассажиров)"],
     [`Базовая цена за ${INCLUDED_SPOTS} мест`, formatMoney(pricing.base)],
     [
       `Дополнительно за точки после ${INCLUDED_SPOTS} (${pricing.extraPlaces} шт.)`,
@@ -945,16 +962,86 @@ function renderPlaces() {
 }
 
 function renderRouteMinInfo() {
-  if (!routeMinInfoEl) return;
+  if (!selectedCountInfoEl) return;
   const count = state.places.length;
-  const ok = count >= MIN_ROUTE_PLACES;
-  routeMinInfoEl.textContent = `Выбрано ${count} мест(а). Минимум для заявки: ${MIN_ROUTE_PLACES}.`;
-  routeMinInfoEl.classList.remove("notice-ok", "notice-error");
-  routeMinInfoEl.classList.add(ok ? "notice-ok" : "notice-error");
+  const missing = Math.max(0, MIN_ROUTE_PLACES - count);
+  const readyToSend = count >= MIN_ROUTE_PLACES;
+
+  selectedCountInfoEl.textContent = `Выбрано мест: ${count} из ${MIN_ROUTE_PLACES}+`;
+  selectedCountInfoEl.classList.remove("notice-ok", "notice-error");
+  selectedCountInfoEl.classList.add(readyToSend ? "notice-ok" : "notice-error");
+
+  if (leadSubmitBtn) {
+    leadSubmitBtn.disabled = !readyToSend;
+  }
+
+  if (leadSubmitHintEl) {
+    leadSubmitHintEl.textContent = readyToSend
+      ? "Минимум выполнен. Можно отправлять заявку."
+      : `Выберите еще ${missing} мест(а), чтобы отправить заявку.`;
+    leadSubmitHintEl.classList.remove("notice-ok", "notice-error");
+    leadSubmitHintEl.classList.add(readyToSend ? "notice-ok" : "notice-error");
+  }
+}
+
+function renderMode() {
+  const isReady = state.mode === "ready";
+  const isCustom = state.mode === "custom";
+
+  if (readyRoutesSectionEl) {
+    readyRoutesSectionEl.classList.toggle("hidden", !isReady);
+  }
+  if (customBuilderSectionEl) {
+    customBuilderSectionEl.classList.toggle("hidden", !isCustom);
+  }
+
+  if (chooseReadyModeBtn) {
+    chooseReadyModeBtn.classList.toggle("active", isReady);
+  }
+  if (chooseCustomModeBtn) {
+    chooseCustomModeBtn.classList.toggle("active", isCustom);
+  }
+
+  if (modeHintEl) {
+    if (!state.mode) {
+      modeHintEl.textContent = "Выберите формат, чтобы перейти к шагу 2.";
+    } else if (isReady) {
+      modeHintEl.textContent =
+        "Показываем готовые туры. Выберите вариант и отправьте заявку.";
+    } else {
+      modeHintEl.textContent =
+        "Показываем категории и точки. Соберите маршрут и отправьте заявку.";
+    }
+  }
+}
+
+function setStepState(stepEl, { active = false, done = false }) {
+  if (!stepEl) return;
+  stepEl.classList.remove("active", "done");
+  if (done) stepEl.classList.add("done");
+  if (active) stepEl.classList.add("active");
+}
+
+function renderSteps() {
+  const hasMode = Boolean(state.mode);
+  const isReadyForContacts = state.places.length >= MIN_ROUTE_PLACES;
+
+  setStepState(step1El, { active: !hasMode, done: hasMode });
+  setStepState(step2El, { active: hasMode && !isReadyForContacts, done: isReadyForContacts });
+  setStepState(step3El, { active: isReadyForContacts, done: false });
+}
+
+function selectMode(mode) {
+  state.mode = mode;
+  render();
 }
 
 function render() {
-  renderCatalog();
+  renderMode();
+  renderSteps();
+  if (state.mode === "custom") {
+    renderCatalog();
+  }
   renderPlaces();
   renderSummary();
   renderRouteMinInfo();
@@ -969,12 +1056,18 @@ function showLeadResult(message, isError = false) {
 
 function buildLeadPayload() {
   const routeDays = buildItinerary(getSegments(state.places)).length;
+  const peopleCount = Number(document.getElementById("customerPeople").value) || 1;
+  const noteRaw = document.getElementById("customerNote").value.trim();
+  const noteWithPeople = noteRaw
+    ? `Людей: ${peopleCount}. ${noteRaw}`
+    : `Людей: ${peopleCount}.`;
   return {
     customer: {
       name: document.getElementById("customerName").value.trim(),
       phone: document.getElementById("customerTelegram").value.trim(),
       travel_date: document.getElementById("travelDate").value,
-      note: document.getElementById("customerNote").value.trim(),
+      note: noteWithPeople,
+      people_count: peopleCount,
     },
     route: {
       days: routeDays,
@@ -1014,6 +1107,7 @@ function sendLeadToTelegram(payload, leadId = null) {
     customer_name: payload.customer.name,
     customer_phone: payload.customer.phone,
     customer_telegram: payload.customer.phone,
+    people_count: payload.customer.people_count,
     travel_date: payload.customer.travel_date,
     days: payload.route.days,
     places_count: payload.route.places.length,
@@ -1045,6 +1139,7 @@ function applyNamedPreset(routeTitle, placeNames) {
 
   if (!places.length) return;
 
+  state.mode = "ready";
   state.routeTitle = routeTitle;
   state.places = places.map((place) => ({ ...place, id: newId() }));
   render();
@@ -1066,6 +1161,10 @@ leadForm.addEventListener("submit", async (event) => {
     showLeadResult("Заполните имя и Telegram клиента", true);
     return;
   }
+  if (!payload.customer.people_count || payload.customer.people_count < 1) {
+    showLeadResult("Укажите корректное количество людей", true);
+    return;
+  }
 
   showLeadResult("Сохраняю заявку...");
 
@@ -1074,6 +1173,7 @@ leadForm.addEventListener("submit", async (event) => {
     sendLeadToTelegram(payload, result.lead_id);
     showLeadResult(`Заявка #${result.lead_id} сохранена и отправлена в Telegram`);
     leadForm.reset();
+    document.getElementById("customerPeople").value = "2";
   } catch (error) {
     showLeadResult(error.message, true);
   }
@@ -1103,8 +1203,69 @@ if (addEastBaliRouteBtn) {
   });
 }
 
+if (addUbudCenterRouteBtn) {
+  addUbudCenterRouteBtn.addEventListener("click", () => {
+    applyNamedPreset("Центр Бали - Убуд", [
+      "Tegalalang Rice Terrace",
+      "Tirta Empul",
+      "Gunung Kawi Tampaksiring",
+      "Taman Dedari",
+      "Kanto Lampo Waterfall",
+    ]);
+  });
+}
+
+if (addNorthSideRouteBtn) {
+  addNorthSideRouteBtn.addEventListener("click", () => {
+    applyNamedPreset("Северная сторона Бали", [
+      "Sekumpul Waterfall",
+      "Banyu Wana Amertha Waterfall",
+      "Puncak Wanagiri",
+      "Bali Handara Gate",
+      "Fresh Strawberry (дегустация клубничного вина)",
+    ]);
+  });
+}
+
+if (addSpiritualRouteBtn) {
+  addSpiritualRouteBtn.addEventListener("click", () => {
+    applyNamedPreset("Духовный Бали", [
+      "Penataran Agung Lempuyang Temple",
+      "Tirta Gangga",
+      "Tirta Empul",
+      "Pura Gunung Kawi Sebatu",
+      "Gunung Kawi Tampaksiring",
+    ]);
+  });
+}
+
+if (addActiveRouteBtn) {
+  addActiveRouteBtn.addEventListener("click", () => {
+    applyNamedPreset("Активный Бали", [
+      "Nungnung Waterfall",
+      "Leke Leke Waterfall",
+      "Aling-Aling Waterfall",
+      "Tibumana Waterfall",
+      "Kanto Lampo Waterfall",
+    ]);
+  });
+}
+
+if (chooseReadyModeBtn) {
+  chooseReadyModeBtn.addEventListener("click", () => {
+    selectMode("ready");
+  });
+}
+
+if (chooseCustomModeBtn) {
+  chooseCustomModeBtn.addEventListener("click", () => {
+    selectMode("custom");
+  });
+}
+
 clearAllBtn.addEventListener("click", () => {
-  state.routeTitle = "Индивидуальный маршрут";
+  state.routeTitle =
+    state.mode === "ready" ? "Готовый маршрут" : "Индивидуальный маршрут";
   state.places = [];
   render();
 });
@@ -1115,11 +1276,8 @@ function setupTelegramButton() {
 
   tg.ready();
   tg.expand();
-  tg.MainButton.setText("Отправить маршрут в чат");
-  tg.MainButton.show();
-
   tg.MainButton.offClick(sendRouteToTelegramQuick);
-  tg.MainButton.onClick(sendRouteToTelegramQuick);
+  tg.MainButton.hide();
 }
 
 function sendRouteToTelegramQuick() {

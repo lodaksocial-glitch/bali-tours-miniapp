@@ -18,11 +18,12 @@
 
     <main class="app">
       <header class="hero">
-        <p class="badge">Авторские туры</p>
+        <p class="badge">Создай свой уникальный маршрут</p>
         <h1>Бали, Нуса Пенида, Ява</h1>
         <p class="lead">
-          Создавайте маршрут в интерактивном режиме: точки, описание, время,
-          стоимость и полезные советы.
+          Выберите лучшие локации, соберите тур мечты и получите незабываемое
+          путешествие с комфортным трансфером, красивыми фото-точками и
+          продуманным таймингом без лишней суеты.
         </p>
         <div class="hero-grid">
           <article class="hero-card">
@@ -30,8 +31,8 @@
             <p><strong>1 200 000 IDR</strong> за маршрут из 5 мест</p>
           </article>
           <article class="hero-card">
-            <h2>Что включено</h2>
-            <p><strong>5 выбранных локаций</strong> в базовом пакете</p>
+            <h2>Цена за машину</h2>
+            <p>Стоимость делится на <strong>всех пассажиров</strong></p>
           </article>
           <article class="hero-card">
             <h2>Доплата</h2>
@@ -41,19 +42,52 @@
       </header>
 
       <section class="panel">
-        <div class="panel-head row">
-          <h2>Каталог локаций</h2>
-          <p id="routeMinInfo" class="small"></p>
+        <div class="steps" id="stepProgress">
+          <div id="step1" class="step-item active">
+            <span class="step-num">1</span>
+            <span class="step-text">Формат</span>
+          </div>
+          <div id="step2" class="step-item">
+            <span class="step-num">2</span>
+            <span class="step-text">Локации</span>
+          </div>
+          <div id="step3" class="step-item">
+            <span class="step-num">3</span>
+            <span class="step-text">Контакты</span>
+          </div>
         </div>
-        <p class="small">Шаг 1: выберите категории. Шаг 2: добавьте точки в маршрут.</p>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Шаг 1. Выберите формат</h2>
+        </div>
+        <div class="mode-grid">
+          <button id="chooseReadyMode" class="mode-btn" type="button">
+            Готовые туры
+            <span class="small">Быстрый выбор готового сценария</span>
+          </button>
+          <button id="chooseCustomMode" class="mode-btn" type="button">
+            Собрать свой
+            <span class="small">Категории -> локации -> ваш маршрут</span>
+          </button>
+        </div>
+        <p id="modeHint" class="small"></p>
+      </section>
+
+      <section id="customBuilderSection" class="panel hidden">
+        <div class="panel-head row">
+          <h2>Шаг 2. Соберите свой тур</h2>
+        </div>
+        <p class="small">Выберите категории, затем добавьте подходящие локации.</p>
         <p id="catalogStatus" class="small"></p>
         <div id="categoryFilters" class="category-filters"></div>
         <div id="catalogCards" class="catalog-grid"></div>
       </section>
 
-      <section class="panel">
+      <section id="readyRoutesSection" class="panel hidden">
         <div class="panel-head">
-          <h2>Готовые маршруты</h2>
+          <h2>Шаг 2. Выберите готовый маршрут</h2>
         </div>
         <div class="route-list">
           <article class="route-card">
@@ -74,6 +108,42 @@
               Выбрать Тур 2
             </button>
           </article>
+          <article class="route-card">
+            <h3>Тур 3: Центр Бали - Убуд</h3>
+            <p class="small">
+              Tegalalang -> Tirta Empul -> Gunung Kawi -> Taman Dedari -> Kanto Lampo
+            </p>
+            <button id="addUbudCenterRoute" class="btn btn-secondary" type="button">
+              Выбрать Тур 3
+            </button>
+          </article>
+          <article class="route-card">
+            <h3>Тур 4: Северная сторона Бали</h3>
+            <p class="small">
+              Sekumpul -> Banyu Wana Amertha -> Puncak Wanagiri -> Bali Handara Gate -> Fresh Strawberry
+            </p>
+            <button id="addNorthSideRoute" class="btn btn-secondary" type="button">
+              Выбрать Тур 4
+            </button>
+          </article>
+          <article class="route-card">
+            <h3>Тур 5: Духовный Бали</h3>
+            <p class="small">
+              Lempuyang -> Tirta Gangga -> Tirta Empul -> Gunung Kawi Sebatu -> Gunung Kawi Tampaksiring
+            </p>
+            <button id="addSpiritualRoute" class="btn btn-secondary" type="button">
+              Выбрать Тур 5
+            </button>
+          </article>
+          <article class="route-card">
+            <h3>Тур 6: Активный Бали</h3>
+            <p class="small">
+              Nungnung -> Leke Leke -> Aling-Aling -> Tibumana -> Kanto Lampo
+            </p>
+            <button id="addActiveRoute" class="btn btn-secondary" type="button">
+              Выбрать Тур 6
+            </button>
+          </article>
         </div>
       </section>
 
@@ -86,6 +156,7 @@
             </button>
           </div>
         </div>
+        <p id="selectedCountInfo" class="small"></p>
         <div id="places" class="cards"></div>
       </section>
 
@@ -98,7 +169,7 @@
 
       <section class="panel">
         <div class="panel-head">
-          <h2>Заявка клиента</h2>
+          <h2>Шаг 3. Контакты клиента</h2>
         </div>
         <form id="leadForm" class="grid-2">
           <label>
@@ -113,6 +184,10 @@
             Дата поездки
             <input id="travelDate" type="date" />
           </label>
+          <label>
+            Количество людей
+            <input id="customerPeople" type="number" min="1" max="20" value="2" />
+          </label>
           <label class="full">
             Комментарий клиента
             <textarea
@@ -121,8 +196,11 @@
               placeholder="Пожелания: дети, рассвет, пляж, без долгих подъемов..."
             ></textarea>
           </label>
-          <button type="submit" class="btn">Отправить заявку</button>
+          <button id="leadSubmitBtn" type="submit" class="btn" disabled>
+            Отправить заявку
+          </button>
         </form>
+        <p id="leadSubmitHint" class="small"></p>
         <p id="leadResult" class="small notice"></p>
       </section>
     </main>
