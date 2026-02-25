@@ -47,7 +47,7 @@ const CATEGORY_IMAGES = {
     "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=1200&q=80",
 };
 
-const CATALOG_SPOTS = [
+const DEFAULT_CATALOG_SPOTS = [
   {
     name: "Uluwatu Temple",
     region: "bali",
@@ -530,6 +530,8 @@ const CATALOG_SPOTS = [
     tip: "Для комфортного снорклинга лучше ехать при спокойной воде.",
   },
 ];
+
+let CATALOG_SPOTS = [...DEFAULT_CATALOG_SPOTS];
 
 const state = {
   routeTitle: "Индивидуальный маршрут",
@@ -1048,6 +1050,53 @@ function render() {
   setupTelegramButton();
 }
 
+function normalizeSpot(spot) {
+  if (!spot || typeof spot !== "object") return null;
+  const name = String(spot.name || "").trim();
+  if (!name) return null;
+
+  const duration = Number(spot.duration);
+  const ticket = Number(spot.ticket);
+
+  return {
+    name,
+    region: String(spot.region || "bali").trim() || "bali",
+    category: String(spot.category || "viewpoints").trim() || "viewpoints",
+    duration: Number.isFinite(duration) && duration > 0 ? duration : 1,
+    ticket: Number.isFinite(ticket) && ticket >= 0 ? ticket : 0,
+    description: String(spot.description || "").trim(),
+    image: String(spot.image || "").trim(),
+    tip: String(spot.tip || "").trim(),
+  };
+}
+
+async function syncCatalogSpots() {
+  try {
+    const response = await fetch("/api/spots");
+    const data = await response.json().catch(() => ({}));
+    if (response.ok && data.ok && Array.isArray(data.items) && data.items.length) {
+      const normalized = data.items.map(normalizeSpot).filter(Boolean);
+      if (normalized.length) {
+        CATALOG_SPOTS = normalized;
+        render();
+        return;
+      }
+    }
+  } catch (error) {
+    // Keep default catalog if API is unavailable.
+  }
+
+  try {
+    await fetch("/api/spots/bootstrap", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items: DEFAULT_CATALOG_SPOTS }),
+    });
+  } catch (error) {
+    // Bootstrap is optional; defaults still work in the client.
+  }
+}
+
 function showLeadResult(message, isError = false) {
   leadResultEl.textContent = message;
   leadResultEl.classList.remove("notice-ok", "notice-error");
@@ -1296,3 +1345,4 @@ function sendRouteToTelegramQuick() {
 }
 
 render();
+syncCatalogSpots();
