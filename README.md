@@ -60,6 +60,7 @@
    - `BOT_TOKEN`
    - `ADMIN_CHAT_ID`
    Это нужно, чтобы backend отправлял новую заявку админу в Telegram сразу после сохранения.
+   - `DB_PATH=/var/data/leads.db` (если подключен Persistent Disk)
 6. В `@BotFather` запускайте бота и проверяйте `/start`.
 
 ### Точные значения URL для Render

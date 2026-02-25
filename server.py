@@ -11,7 +11,7 @@ from typing import Any
 from flask import Flask, abort, jsonify, request, send_from_directory
 
 BASE_DIR = Path(__file__).resolve().parent
-DB_PATH = BASE_DIR / "leads.db"
+DB_PATH = Path(os.getenv("DB_PATH", str(BASE_DIR / "leads.db"))).expanduser()
 ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "change-me")
 ALLOWED_STATUSES = {"new", "contacted", "booked", "archived"}
 CATALOG_CONFIG_KEY = "catalog_spots"
@@ -30,6 +30,7 @@ def get_connection() -> sqlite3.Connection:
 
 
 def init_db() -> None:
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     with get_connection() as conn:
         conn.execute(
             """

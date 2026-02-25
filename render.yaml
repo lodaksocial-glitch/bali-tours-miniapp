@@ -13,6 +13,8 @@ services:
         value: 0.0.0.0
       - key: PORT
         value: 10000
+      - key: DB_PATH
+        value: /var/data/leads.db
       - key: ADMIN_TOKEN
         generateValue: true
       - key: BOT_TOKEN
