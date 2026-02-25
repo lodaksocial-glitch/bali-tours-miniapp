@@ -1885,11 +1885,12 @@ if (addJavaGrandRouteBtn) {
         "Air Terjun Kabut Pelangi",
       ],
       presetPricing: {
-        baseOverride: 4_500_000,
+        baseOverride: 6_500_000,
         mandatoryExtras: [
           { label: "Поездка на джипах", price: 100_000 },
           { label: "2 отеля", price: 250_000 },
           { label: "Респиратор Иджен", price: 50_000 },
+          { label: "Входной билет Иджен", price: 135_000 },
         ],
       },
     });
