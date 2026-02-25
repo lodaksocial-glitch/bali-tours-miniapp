@@ -59,12 +59,17 @@
 
       input,
       select,
-      button {
+      button,
+      textarea {
         width: 100%;
         border: 1px solid var(--line);
         border-radius: 8px;
         font: inherit;
         padding: 9px 10px;
+      }
+
+      textarea {
+        resize: vertical;
       }
 
       button {
@@ -134,8 +139,49 @@
         gap: 6px;
       }
 
+      .locations-toolbar {
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .spots-grid {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      }
+
+      .spot-card {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px;
+        background: #faf9f6;
+        display: grid;
+        gap: 8px;
+      }
+
+      .spot-row {
+        display: grid;
+        gap: 6px;
+      }
+
+      .spot-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
       @media (max-width: 900px) {
         .controls {
+          grid-template-columns: 1fr;
+        }
+
+        .locations-toolbar {
+          grid-template-columns: 1fr;
+        }
+
+        .spot-grid-2 {
           grid-template-columns: 1fr;
         }
       }
@@ -183,6 +229,20 @@
           <tbody id="rows"></tbody>
         </table>
       </section>
+
+      <section class="panel">
+        <h2>Редактор локаций</h2>
+        <p class="small">
+          Меняйте описание, фото, категорию, регион, длительность и цену входного билета без правки кода.
+        </p>
+        <div class="locations-toolbar">
+          <input id="spotSearchInput" placeholder="Поиск локации по названию/категории/региону" />
+          <button id="loadSpotsBtn">Загрузить локации</button>
+          <button id="saveSpotsBtn" class="secondary">Сохранить изменения</button>
+        </div>
+        <p class="small" id="spotsMeta"></p>
+        <div id="spotsList" class="spots-grid"></div>
+      </section>
     </main>
 
     <script>
@@ -193,20 +253,45 @@
       const saveTokenBtn = document.getElementById("saveTokenBtn");
       const rowsEl = document.getElementById("rows");
       const metaEl = document.getElementById("meta");
+
+      const spotSearchInputEl = document.getElementById("spotSearchInput");
+      const loadSpotsBtn = document.getElementById("loadSpotsBtn");
+      const saveSpotsBtn = document.getElementById("saveSpotsBtn");
+      const spotsMetaEl = document.getElementById("spotsMeta");
+      const spotsListEl = document.getElementById("spotsList");
+
       const STATUSES = ["new", "contacted", "booked", "archived"];
+      const SPOT_CATEGORIES = [
+        "temples",
+        "waterfalls",
+        "terraces",
+        "viewpoints",
+        "beaches",
+        "food",
+        "animals",
+        "relax",
+      ];
+      const SPOT_REGIONS = ["bali", "nusa_penida", "java", "other"];
 
       let leads = [];
+      let spots = [];
+      let spotsUpdatedAt = null;
 
       tokenEl.value = localStorage.getItem("adminToken") || "";
 
       saveTokenBtn.addEventListener("click", () => {
         localStorage.setItem("adminToken", tokenEl.value.trim());
-        metaEl.textContent = "Токен сохранен в браузере.";
+        setMeta("Токен сохранен в браузере.");
+        setSpotsMeta("Токен сохранен. Теперь можно загружать и сохранять локации.");
       });
 
       refreshBtn.addEventListener("click", loadLeads);
       statusFilterEl.addEventListener("change", loadLeads);
       searchInputEl.addEventListener("input", renderRows);
+
+      loadSpotsBtn.addEventListener("click", loadSpots);
+      saveSpotsBtn.addEventListener("click", saveSpots);
+      spotSearchInputEl.addEventListener("input", renderSpots);
 
       function escapeText(value) {
         return (value || "").toString();
@@ -235,6 +320,31 @@
       function setMeta(text, isError = false) {
         metaEl.textContent = text;
         metaEl.style.color = isError ? "#a0392a" : "#575146";
+      }
+
+      function setSpotsMeta(text, isError = false) {
+        spotsMetaEl.textContent = text;
+        spotsMetaEl.style.color = isError ? "#a0392a" : "#575146";
+      }
+
+      function normalizeSpot(raw) {
+        if (!raw || typeof raw !== "object") return null;
+        const name = String(raw.name || "").trim();
+        if (!name) return null;
+
+        const duration = Number(raw.duration);
+        const ticket = Number(raw.ticket);
+
+        return {
+          name,
+          region: String(raw.region || "bali").trim() || "bali",
+          category: String(raw.category || "viewpoints").trim() || "viewpoints",
+          duration: Number.isFinite(duration) && duration > 0 ? duration : 1,
+          ticket: Number.isFinite(ticket) && ticket >= 0 ? Math.round(ticket) : 0,
+          description: String(raw.description || "").trim(),
+          image: String(raw.image || "").trim(),
+          tip: String(raw.tip || "").trim(),
+        };
       }
 
       async function loadLeads() {
@@ -347,7 +457,8 @@
           routeCell.textContent = buildRouteText(lead);
 
           const priceCell = document.createElement("td");
-          const total = lead.pricing && typeof lead.pricing.total !== "undefined" ? lead.pricing.total : 0;
+          const total =
+            lead.pricing && typeof lead.pricing.total !== "undefined" ? lead.pricing.total : 0;
           priceCell.textContent = formatMoney(total);
 
           const statusCell = document.createElement("td");
@@ -394,7 +505,187 @@
         }
       }
 
+      function getIndexedSpots() {
+        const query = spotSearchInputEl.value.trim().toLowerCase();
+        return spots
+          .map((spot, index) => ({ spot, index }))
+          .filter(({ spot }) => {
+            if (!query) return true;
+            const text = [spot.name, spot.category, spot.region, spot.description]
+              .join(" ")
+              .toLowerCase();
+            return text.includes(query);
+          });
+      }
+
+      function createSelect(options, value, onChange) {
+        const select = document.createElement("select");
+        options.forEach((optionValue) => {
+          const option = document.createElement("option");
+          option.value = optionValue;
+          option.textContent = optionValue;
+          if (optionValue === value) option.selected = true;
+          select.append(option);
+        });
+        select.addEventListener("change", () => onChange(select.value));
+        return select;
+      }
+
+      function renderSpots() {
+        spotsListEl.innerHTML = "";
+        const items = getIndexedSpots();
+
+        if (!items.length) {
+          const empty = document.createElement("p");
+          empty.className = "small";
+          empty.textContent = spots.length
+            ? "По фильтру ничего не найдено."
+            : "Список локаций пуст. Откройте Mini App один раз и нажмите «Загрузить локации».";
+          spotsListEl.append(empty);
+          return;
+        }
+
+        for (const { spot, index } of items) {
+          const card = document.createElement("article");
+          card.className = "spot-card";
+
+          const title = document.createElement("h3");
+          title.textContent = spot.name;
+
+          const gridTop = document.createElement("div");
+          gridTop.className = "spot-grid-2";
+          gridTop.append(
+            createSelect(SPOT_CATEGORIES, spot.category, (value) => {
+              spots[index].category = value;
+            }),
+            createSelect(SPOT_REGIONS, spot.region, (value) => {
+              spots[index].region = value;
+            })
+          );
+
+          const gridMid = document.createElement("div");
+          gridMid.className = "spot-grid-2";
+
+          const durationInput = document.createElement("input");
+          durationInput.type = "number";
+          durationInput.step = "0.1";
+          durationInput.min = "0.1";
+          durationInput.value = String(spot.duration);
+          durationInput.placeholder = "Длительность (часы)";
+          durationInput.addEventListener("input", () => {
+            spots[index].duration = Number(durationInput.value) || 1;
+          });
+
+          const ticketInput = document.createElement("input");
+          ticketInput.type = "number";
+          ticketInput.min = "0";
+          ticketInput.step = "1000";
+          ticketInput.value = String(spot.ticket);
+          ticketInput.placeholder = "Билет (IDR)";
+          ticketInput.addEventListener("input", () => {
+            spots[index].ticket = Math.max(0, Number(ticketInput.value) || 0);
+          });
+
+          gridMid.append(durationInput, ticketInput);
+
+          const imageInput = document.createElement("input");
+          imageInput.type = "url";
+          imageInput.placeholder = "URL картинки";
+          imageInput.value = spot.image || "";
+          imageInput.addEventListener("input", () => {
+            spots[index].image = imageInput.value.trim();
+          });
+
+          const desc = document.createElement("textarea");
+          desc.rows = 3;
+          desc.placeholder = "Описание локации";
+          desc.value = spot.description || "";
+          desc.addEventListener("input", () => {
+            spots[index].description = desc.value.trim();
+          });
+
+          const tip = document.createElement("input");
+          tip.placeholder = "Полезный совет";
+          tip.value = spot.tip || "";
+          tip.addEventListener("input", () => {
+            spots[index].tip = tip.value.trim();
+          });
+
+          card.append(title, gridTop, gridMid, imageInput, desc, tip);
+          spotsListEl.append(card);
+        }
+      }
+
+      async function loadSpots() {
+        setSpotsMeta("Загружаю локации...");
+        spotsListEl.innerHTML = "";
+
+        try {
+          const response = await fetch("/api/spots");
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || !data.ok) {
+            throw new Error(data.error || `HTTP ${response.status}`);
+          }
+
+          spots = Array.isArray(data.items) ? data.items.map(normalizeSpot).filter(Boolean) : [];
+          spotsUpdatedAt = data.updated_at || null;
+          renderSpots();
+
+          if (!spots.length) {
+            setSpotsMeta(
+              "Локации пока не сохранены в базе. Откройте Mini App один раз, затем нажмите «Загрузить локации».",
+              true
+            );
+            return;
+          }
+
+          const updatedText = spotsUpdatedAt ? ` | Обновлено: ${formatDate(spotsUpdatedAt)}` : "";
+          setSpotsMeta(`Локаций: ${spots.length}${updatedText}`);
+        } catch (error) {
+          setSpotsMeta(`Ошибка загрузки локаций: ${error.message}`, true);
+        }
+      }
+
+      async function saveSpots() {
+        const token = tokenEl.value.trim();
+        if (!token) {
+          setSpotsMeta("Введите ADMIN_TOKEN перед сохранением.", true);
+          return;
+        }
+
+        const payload = spots.map(normalizeSpot).filter(Boolean);
+        if (!payload.length) {
+          setSpotsMeta("Сохранять нечего: список локаций пуст.", true);
+          return;
+        }
+
+        setSpotsMeta("Сохраняю изменения...");
+
+        try {
+          const response = await fetch("/api/spots", {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Admin-Token": token,
+            },
+            body: JSON.stringify({ items: payload }),
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || !data.ok) {
+            throw new Error(data.error || `HTTP ${response.status}`);
+          }
+
+          spots = payload;
+          spotsUpdatedAt = data.updated_at || null;
+          const updatedText = spotsUpdatedAt ? ` | Обновлено: ${formatDate(spotsUpdatedAt)}` : "";
+          setSpotsMeta(`Сохранено: ${payload.length} локаций${updatedText}`);
+        } catch (error) {
+          setSpotsMeta(`Ошибка сохранения: ${error.message}`, true);
+        }
+      }
+
       loadLeads();
+      loadSpots();
     </script>
   </body>
 </html>
