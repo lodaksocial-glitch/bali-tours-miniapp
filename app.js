@@ -437,6 +437,17 @@ const CATALOG_SPOTS = [
     tip: "После дождя камни могут быть скользкими.",
   },
   {
+    name: "Gembleng Waterfall",
+    region: "bali",
+    category: "waterfalls",
+    duration: 1.3,
+    ticket: 30000,
+    description:
+      "Каскадные водопады и природные каменные бассейны для купания и фото.",
+    image: CATEGORY_IMAGES.waterfalls,
+    tip: "Локация спокойная, лучше приезжать утром для мягкого света.",
+  },
+  {
     name: "SIDEMEN RICE TERRACE",
     region: "bali",
     category: "terraces",
@@ -521,17 +532,15 @@ const CATALOG_SPOTS = [
 ];
 
 const state = {
-  driverName: "Авторский тур с водителем",
+  routeTitle: "Индивидуальный маршрут",
   places: [],
   catalogSelectedCategories: [],
 };
 
-const form = document.getElementById("placeForm");
 const placesEl = document.getElementById("places");
 const summaryEl = document.getElementById("summary");
-const addPresetBtn = document.getElementById("addPreset");
-const addNorthCentralPresetBtn = document.getElementById("addNorthCentralPreset");
-const addNusaPenidaPresetBtn = document.getElementById("addNusaPenidaPreset");
+const addPaperhillsRouteBtn = document.getElementById("addPaperhillsRoute");
+const addEastBaliRouteBtn = document.getElementById("addEastBaliRoute");
 const clearAllBtn = document.getElementById("clearAll");
 const leadForm = document.getElementById("leadForm");
 const leadResultEl = document.getElementById("leadResult");
@@ -680,6 +689,7 @@ function addPlaceFromCatalog(template) {
   );
   if (exists) return;
 
+  state.routeTitle = "Индивидуальный маршрут";
   state.places.push({
     id: newId(),
     name: template.name,
@@ -832,7 +842,7 @@ function renderSummary() {
   summaryEl.innerHTML = "";
 
   const topRows = [
-    ["Тур", state.driverName],
+    ["Тур", state.routeTitle],
     ["Дней (авто)", `${dayCount}`],
     ["Локаций", `${state.places.length}`],
     ["Общее время (с переездами)", `${totalHours.toFixed(1)} ч`],
@@ -968,7 +978,7 @@ function buildLeadPayload() {
     },
     route: {
       days: routeDays,
-      driver_name: state.driverName,
+      driver_name: state.routeTitle,
       places: state.places,
     },
     pricing: getPricing(state.places),
@@ -1014,32 +1024,31 @@ function sendLeadToTelegram(payload, leadId = null) {
   tg.sendData(JSON.stringify(summary));
 }
 
-function applyPreset(places) {
+function buildPlaceFromCatalogName(name) {
+  const source = CATALOG_SPOTS.find((spot) => spot.name === name);
+  if (!source) return null;
+  return {
+    name: source.name,
+    region: source.region,
+    duration: source.duration,
+    ticket: source.ticket,
+    description: source.description,
+    image: source.image,
+    tip: source.tip,
+  };
+}
+
+function applyNamedPreset(routeTitle, placeNames) {
+  const places = placeNames
+    .map((name) => buildPlaceFromCatalogName(name))
+    .filter(Boolean);
+
+  if (!places.length) return;
+
+  state.routeTitle = routeTitle;
   state.places = places.map((place) => ({ ...place, id: newId() }));
   render();
 }
-
-form.addEventListener("submit", (event) => {
-  event.preventDefault();
-
-  const place = {
-    id: newId(),
-    name: document.getElementById("name").value.trim(),
-    region: document.getElementById("region").value,
-    duration: Number(document.getElementById("duration").value),
-    ticket: Number(document.getElementById("ticket").value),
-    description: document.getElementById("description").value.trim(),
-    image: document.getElementById("image").value.trim(),
-    tip: document.getElementById("tip").value.trim(),
-  };
-
-  state.places.push(place);
-  form.reset();
-  document.getElementById("duration").value = "2";
-  document.getElementById("ticket").value = "50000";
-  document.getElementById("region").value = "bali";
-  render();
-});
 
 leadForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -1070,256 +1079,32 @@ leadForm.addEventListener("submit", async (event) => {
   }
 });
 
-addPresetBtn.addEventListener("click", () => {
-  if (state.places.length) return;
+if (addPaperhillsRouteBtn) {
+  addPaperhillsRouteBtn.addEventListener("click", () => {
+    applyNamedPreset("Paperhills - Завтрак над облаками", [
+      "Paperhills",
+      "Tegalalang Rice Terrace",
+      "Kanto Lampo Waterfall",
+      "Gunung Kawi Tampaksiring",
+      "Taman Dedari",
+    ]);
+  });
+}
 
-  const presets = [
-    {
-      name: "Uluwatu Temple",
-      region: "bali",
-      duration: 2,
-      ticket: 50000,
-      description: "Храм на скале и закат.",
-      image:
-        "https://images.unsplash.com/photo-1537953773345-d172ccf13cf1?auto=format&fit=crop&w=1200&q=80",
-      tip: "Приезжайте к 16:30 на закат и танец кечак.",
-    },
-    {
-      name: "Tanah Lot",
-      region: "bali",
-      duration: 1.5,
-      ticket: 60000,
-      description: "Один из самых фотогеничных храмов Бали.",
-      image:
-        "https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=1200&q=80",
-      tip: "Лучший свет утром или на закате.",
-    },
-    {
-      name: "Tegalalang Rice Terrace",
-      region: "bali",
-      duration: 2,
-      ticket: 25000,
-      description: "Рисовые террасы и панорамные виды.",
-      image:
-        "https://images.unsplash.com/photo-1598019138951-3261429d6fce?auto=format&fit=crop&w=1200&q=80",
-      tip: "Берите нескользящую обувь.",
-    },
-    {
-      name: "Tirta Empul",
-      region: "bali",
-      duration: 2,
-      ticket: 50000,
-      description: "Священные источники и ритуал очищения.",
-      image:
-        "https://images.unsplash.com/photo-1555212697-194d092e3b8f?auto=format&fit=crop&w=1200&q=80",
-      tip: "Нужен саронг, можно взять на месте.",
-    },
-    {
-      name: "Ubud Center",
-      region: "bali",
-      duration: 2.5,
-      ticket: 0,
-      description: "Кафе, арт-рынок и атмосферные улочки.",
-      image:
-        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
-      tip: "Запланируйте ужин в центре Убуда.",
-    },
-  ];
-
-  applyPreset(presets);
-});
-
-addNorthCentralPresetBtn.addEventListener("click", () => {
-  const northCentralPreset = [
-    {
-      name: "Sekumpul Restaurant & Coffee Shop",
-      region: "bali",
-      duration: 1.2,
-      ticket: 0,
-      description:
-        "Стартовая точка с завтраком и видом на долину Sekumpul. Щедрые порции и хороший кофе.",
-      image:
-        "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1200&q=80",
-      tip: "Рекомендую выезд 06:30-07:00, чтобы приехать без толпы.",
-    },
-    {
-      name: "Sekumpul Waterfall",
-      region: "bali",
-      duration: 2.2,
-      ticket: 125000,
-      description:
-        "Треккинг через джунгли к каскаду из нескольких водопадов до 80 метров.",
-      image:
-        "https://images.unsplash.com/photo-1595069906974-f8f3e0c9f916?auto=format&fit=crop&w=1200&q=80",
-      tip: "Берите нескользящую обувь и сухой пакет для телефона.",
-    },
-    {
-      name: "Gatep Lawas Ambengan",
-      region: "bali",
-      duration: 0.6,
-      ticket: 20000,
-      description:
-        "Старинные ворота на вершине холма с панорамой на север Бали.",
-      image:
-        "https://images.unsplash.com/photo-1512100356356-de1b84283e18?auto=format&fit=crop&w=1200&q=80",
-      tip: "Лучший свет для фото утром или перед закатом.",
-    },
-    {
-      name: "Aling-Aling Waterfall",
-      region: "bali",
-      duration: 1.8,
-      ticket: 125000,
-      description:
-        "Природные горки, прыжки с высоты и купание в чистых бассейнах.",
-      image:
-        "https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=1200&q=80",
-      tip: "Прыжки лучше делать только с местным гидом на месте.",
-    },
-    {
-      name: "Puncak Wanagiri",
-      region: "bali",
-      duration: 1,
-      ticket: 50000,
-      description:
-        "Смотровые площадки, качели и панорамы на озера Bratan и Tamblingan.",
-      image:
-        "https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=1200&q=80",
-      tip: "На ветреной погоде лучше брать легкую кофту.",
-    },
-    {
-      name: "Bali Farm House",
-      region: "bali",
-      duration: 0.8,
-      ticket: 75000,
-      description:
-        "Ферма с альпаками и уютными фотозонами в европейском стиле.",
-      image:
-        "https://images.unsplash.com/photo-1495908333425-29a1e0918c5f?auto=format&fit=crop&w=1200&q=80",
-      tip: "Подходит как спокойная остановка после активного треккинга.",
-    },
-    {
-      name: "Bali Handara Gate",
-      region: "bali",
-      duration: 0.5,
-      ticket: 30000,
-      description:
-        "Классическая визитная карточка Бали с симметричными воротами.",
-      image:
-        "https://images.unsplash.com/photo-1589308078059-be1415eab4c3?auto=format&fit=crop&w=1200&q=80",
-      tip: "Для фото без очереди лучше приезжать до 10:00.",
-    },
-    {
-      name: "Hidden Strawberry Garden",
-      region: "bali",
-      duration: 0.7,
-      ticket: 35000,
-      description:
-        "Уютный клубничный сад с дегустацией локальных продуктов.",
-      image:
-        "https://images.unsplash.com/photo-1464965911861-746a04b4bca6?auto=format&fit=crop&w=1200&q=80",
-      tip: "Можно взять коробку клубники с собой в дорогу.",
-    },
-    {
-      name: "Неформальная остановка с животными",
-      region: "bali",
-      duration: 0.5,
-      ticket: 20000,
-      description:
-        "Короткая остановка по пути: люваки, летучие лисицы и другие местные животные.",
-      image:
-        "https://images.unsplash.com/photo-1474511320723-9a56873867b5?auto=format&fit=crop&w=1200&q=80",
-      tip: "Уточняйте по месту, если хотите этичный формат без контакта.",
-    },
-    {
-      name: "House of Tundra (обед, запасной вариант)",
-      region: "bali",
-      duration: 1,
-      ticket: 0,
-      description:
-        "Резервный вариант обеда, если не успели поесть у Sekumpul.",
-      image:
-        "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80",
-      tip: "Базовый обед на человека обычно от 80 000 до 120 000 IDR.",
-    },
-  ];
-
-  applyPreset(northCentralPreset);
-});
-
-addNusaPenidaPresetBtn.addEventListener("click", () => {
-  const nusaPenidaPreset = [
-    {
-      name: "Sanur Harbor Fast Boat (check-in)",
-      region: "bali",
-      duration: 0.6,
-      ticket: 0,
-      description:
-        "Ранний сбор и посадка на fast boat до Нуса Пенида. Обычно выезд 06:00-06:30.",
-      image:
-        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
-      tip: "Паспорт/ID и наличные держите в водонепроницаемом чехле.",
-    },
-    {
-      name: "Kelingking Beach Viewpoint",
-      region: "nusa_penida",
-      duration: 1.4,
-      ticket: 10000,
-      description:
-        "Главная визитная карточка Нуса Пенида: панорама в форме T-Rex и океанские скалы.",
-      image:
-        "https://images.unsplash.com/photo-1604999333679-b86d54738315?auto=format&fit=crop&w=1200&q=80",
-      tip: "Лучше приезжать утром, пока мало людей и мягкий свет.",
-    },
-    {
-      name: "Broken Beach",
-      region: "nusa_penida",
-      duration: 0.9,
-      ticket: 0,
-      description:
-        "Природная арка в океане и круглая лагуна, одна из самых фотогеничных локаций острова.",
-      image:
-        "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=1200&q=80",
-      tip: "Берите кепку и воду: тени почти нет.",
-    },
-    {
-      name: "Angel's Billabong",
-      region: "nusa_penida",
-      duration: 0.8,
-      ticket: 0,
-      description:
-        "Скальный бассейн с бирюзовой водой и мощными волнами внизу.",
-      image:
-        "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1200&q=80",
-      tip: "Подходите к краю только на безопасной дистанции, особенно в прилив.",
-    },
-    {
-      name: "Crystal Bay",
-      region: "nusa_penida",
-      duration: 1.2,
-      ticket: 10000,
-      description:
-        "Пляж для отдыха, купания и снорклинга перед обратным рейсом.",
-      image:
-        "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1200&q=80",
-      tip: "Если хотите снорклинг, берите легкую футболку от солнца.",
-    },
-    {
-      name: "Nusa Penida Local Lunch Stop",
-      region: "nusa_penida",
-      duration: 1,
-      ticket: 0,
-      description:
-        "Обед в локальном варунге по пути между западными точками острова.",
-      image:
-        "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1200&q=80",
-      tip: "Средний чек обычно 70 000-120 000 IDR на человека.",
-    },
-  ];
-
-  applyPreset(nusaPenidaPreset);
-});
+if (addEastBaliRouteBtn) {
+  addEastBaliRouteBtn.addEventListener("click", () => {
+    applyNamedPreset("East Bali Gates & Snorkel", [
+      "Penataran Agung Lempuyang Temple",
+      "LAHANGAN SWEET",
+      "Tulamben Beach Viewpoint (USAT Liberty Snorkeling)",
+      "Gembleng Waterfall",
+      "Bali Chocolate Factory",
+    ]);
+  });
+}
 
 clearAllBtn.addEventListener("click", () => {
+  state.routeTitle = "Индивидуальный маршрут";
   state.places = [];
   render();
 });
