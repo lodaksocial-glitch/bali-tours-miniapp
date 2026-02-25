@@ -357,14 +357,44 @@
         }
 
         const source = await response.text();
-        const start = source.indexOf("const CATEGORY_IMAGES = {");
-        const end = source.indexOf("let CATALOG_SPOTS =");
-        if (start === -1 || end === -1 || end <= start) {
+        const endCandidates = ["const state = {", "const placesEl = document.getElementById("];
+        let end = -1;
+        for (const marker of endCandidates) {
+          const idx = source.indexOf(marker);
+          if (idx !== -1) {
+            end = idx;
+            break;
+          }
+        }
+        if (end === -1) {
+          throw new Error("Не удалось определить конец каталога в app.js");
+        }
+
+        const startCandidates = [
+          "const CATEGORY_IMAGES = {",
+          "const DEFAULT_CATALOG_SPOTS = [",
+          "const CATALOG_SPOTS = [",
+        ];
+
+        let start = -1;
+        for (const marker of startCandidates) {
+          const idx = source.indexOf(marker);
+          if (idx !== -1) {
+            start = idx;
+            break;
+          }
+        }
+        if (start === -1 || end <= start) {
           throw new Error("Не удалось найти дефолтный каталог в app.js");
         }
 
         const snippet = source.slice(start, end);
-        const evaluator = new Function(`${snippet}\nreturn DEFAULT_CATALOG_SPOTS;`);
+        const evaluator = new Function(
+          `${snippet}
+if (typeof DEFAULT_CATALOG_SPOTS !== "undefined") return DEFAULT_CATALOG_SPOTS;
+if (typeof CATALOG_SPOTS !== "undefined") return CATALOG_SPOTS;
+return [];`
+        );
         const items = evaluator();
         if (!Array.isArray(items) || !items.length) {
           throw new Error("Дефолтный каталог пуст");
