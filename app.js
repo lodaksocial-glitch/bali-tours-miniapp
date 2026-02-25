@@ -52,7 +52,7 @@ const I18N = {
     emptyRoute: "Места пока не добавлены.",
     minReady: "Минимум выполнен. Можно отправлять заявку.",
     chooseMorePlaces: "Выберите еще {count} мест(а), чтобы отправить заявку.",
-    selectedPlacesCounter: "Выбрано мест: {count} из {min}+",
+    selectedPlacesCounter: "Выбрано мест: {count} (минимум {min})",
     unavailableDate: "Эта дата уже занята. Выберите другую дату поездки.",
     availableDate: "Дата свободна. Можно отправлять заявку.",
     recommendDeparture:
@@ -79,7 +79,7 @@ const I18N = {
     leadSaving: "Сохраняю заявку...",
     fillContact: "Заполните имя и Telegram клиента",
     invalidPeople: "Укажите корректное количество людей",
-    minPlacesError: `Для отправки заявки выберите минимум ${MIN_ROUTE_PLACES} мест`,
+    minPlacesError: "Для отправки заявки выберите минимум {min} мест",
     leadSaved: "Заявка #{id} сохранена и отправлена в Telegram",
     regions: {
       bali: "Бали",
@@ -131,7 +131,7 @@ const I18N = {
     emptyRoute: "No places added yet.",
     minReady: "Minimum reached. You can submit the request.",
     chooseMorePlaces: "Choose {count} more place(s) to submit.",
-    selectedPlacesCounter: "Selected places: {count} of {min}+",
+    selectedPlacesCounter: "Selected places: {count} (minimum {min})",
     unavailableDate: "This date is already booked. Choose another date.",
     availableDate: "Date is available. You can submit the request.",
     recommendDeparture:
@@ -158,7 +158,7 @@ const I18N = {
     leadSaving: "Saving request...",
     fillContact: "Fill in customer name and Telegram",
     invalidPeople: "Please enter valid number of people",
-    minPlacesError: `Choose at least ${MIN_ROUTE_PLACES} places before submit`,
+    minPlacesError: "Choose at least {min} places before submit",
     leadSaved: "Request #{id} saved and sent to Telegram",
     regions: {
       bali: "Bali",
@@ -685,6 +685,116 @@ const DEFAULT_CATALOG_SPOTS = [
     image: CATEGORY_IMAGES.beaches,
     tip: "Для комфортного снорклинга лучше ехать при спокойной воде.",
   },
+  {
+    name: "Pinggan Sunrise Point",
+    region: "bali",
+    category: "viewpoints",
+    duration: 1,
+    ticket: 30000,
+    description: "Рассветная панорама на вулкан Батур и озеро в Кинтамани.",
+    image: CATEGORY_IMAGES.viewpoints,
+    tip: "Лучший свет с 05:30 до 06:30.",
+  },
+  {
+    name: "Mount Batur Viewpoint",
+    region: "bali",
+    category: "viewpoints",
+    duration: 1,
+    ticket: 25000,
+    description: "Классическая смотровая точка на кальдеру и вулкан Батур.",
+    image: CATEGORY_IMAGES.viewpoints,
+    tip: "Утром меньше облаков и туристов.",
+  },
+  {
+    name: "Batur Natural Hot Spring",
+    region: "bali",
+    category: "relax",
+    duration: 1.7,
+    ticket: 175000,
+    description: "Термальные источники у подножья вулкана Батур.",
+    image: CATEGORY_IMAGES.relax,
+    tip: "Берите купальник и сменную одежду.",
+  },
+  {
+    name: "Penglipuran Village",
+    region: "bali",
+    category: "viewpoints",
+    duration: 1.2,
+    ticket: 50000,
+    description: "Традиционная балийская деревня с красивой планировкой улиц.",
+    image: CATEGORY_IMAGES.viewpoints,
+    tip: "Подходит для спокойной прогулки и фото.",
+  },
+  {
+    name: "1911 Cafe & Resto",
+    region: "java",
+    category: "food",
+    duration: 1,
+    ticket: 0,
+    description: "Кафе-остановка перед маршрутом на Иджен.",
+    image: CATEGORY_IMAGES.food,
+    tip: "Удобно поесть перед ночным подъемом.",
+  },
+  {
+    name: "Pondok Is Oke - Villas & Bungalows",
+    region: "java",
+    category: "relax",
+    duration: 8,
+    ticket: 0,
+    description: "Ночевка перед/после восхождений на Яве.",
+    image: CATEGORY_IMAGES.relax,
+    tip: "Рекомендуется ранний сон перед выездом на рассвет.",
+  },
+  {
+    name: "Pegunungan Ijen",
+    region: "java",
+    category: "viewpoints",
+    duration: 4.5,
+    ticket: 0,
+    description: "Вулкан Иджен: кратер, рассвет и знаменитые виды.",
+    image: CATEGORY_IMAGES.viewpoints,
+    tip: "Нужна теплая одежда и респиратор.",
+  },
+  {
+    name: "Kawah Gunung Bromo",
+    region: "java",
+    category: "viewpoints",
+    duration: 3.5,
+    ticket: 220000,
+    description: "Рассвет на Бромо и подъем к кратеру вулкана.",
+    image: CATEGORY_IMAGES.viewpoints,
+    tip: "На рассвете прохладно, берите куртку.",
+  },
+  {
+    name: "Bromo Escapes",
+    region: "java",
+    category: "viewpoints",
+    duration: 1.2,
+    ticket: 0,
+    description: "Фотостопы и панорамные точки в районе Бромо.",
+    image: CATEGORY_IMAGES.viewpoints,
+    tip: "Лучшие кадры в золотой час.",
+  },
+  {
+    name: "Tumpak Sewu Waterfall",
+    region: "java",
+    category: "waterfalls",
+    duration: 2.5,
+    ticket: 50000,
+    description: "Один из самых впечатляющих водопадов Явы.",
+    image: CATEGORY_IMAGES.waterfalls,
+    tip: "Обувь с хорошим сцеплением обязательна.",
+  },
+  {
+    name: "Air Terjun Kabut Pelangi",
+    region: "java",
+    category: "waterfalls",
+    duration: 1.8,
+    ticket: 30000,
+    description: "Живописный водопад с мягким треком и фототочками.",
+    image: CATEGORY_IMAGES.waterfalls,
+    tip: "Лучше приезжать в сухую погоду.",
+  },
 ];
 
 let CATALOG_SPOTS = [...DEFAULT_CATALOG_SPOTS];
@@ -698,16 +808,19 @@ const state = {
   packageId: PACKAGES.quick.id,
   selectedAddons: [],
   blockedDates: [],
+  requiredPlacesMin: MIN_ROUTE_PLACES,
+  presetPricing: null,
 };
 
 const placesEl = document.getElementById("places");
 const summaryEl = document.getElementById("summary");
-const addPaperhillsRouteBtn = document.getElementById("addPaperhillsRoute");
+const addSekumpulRouteBtn = document.getElementById("addSekumpulRoute");
+const addUbudClassicRouteBtn = document.getElementById("addUbudClassicRoute");
+const addKintamaniRouteBtn = document.getElementById("addKintamaniRoute");
 const addEastBaliRouteBtn = document.getElementById("addEastBaliRoute");
-const addUbudCenterRouteBtn = document.getElementById("addUbudCenterRoute");
 const addNorthSideRouteBtn = document.getElementById("addNorthSideRoute");
-const addSpiritualRouteBtn = document.getElementById("addSpiritualRoute");
-const addActiveRouteBtn = document.getElementById("addActiveRoute");
+const addIjenRouteBtn = document.getElementById("addIjenRoute");
+const addJavaGrandRouteBtn = document.getElementById("addJavaGrandRoute");
 const clearAllBtn = document.getElementById("clearAll");
 const leadForm = document.getElementById("leadForm");
 const leadResultEl = document.getElementById("leadResult");
@@ -814,22 +927,46 @@ function getTransferHours(prev, current) {
     : TRAVEL_DIFF_REGION_HOURS;
 }
 
-function getPricing(places, packageId = state.packageId, selectedAddons = state.selectedAddons) {
+function getRequiredPlacesMin() {
+  const value = Number(state.requiredPlacesMin);
+  if (!Number.isFinite(value) || value < 1) return MIN_ROUTE_PLACES;
+  return Math.round(value);
+}
+
+function getPricing(
+  places,
+  packageId = state.packageId,
+  selectedAddons = state.selectedAddons,
+  presetPricing = state.presetPricing
+) {
   const extraPlaces = Math.max(0, places.length - INCLUDED_SPOTS);
   const surcharge = extraPlaces * EXTRA_SPOT_SURCHARGE;
   const ticketTotal = places.reduce((acc, place) => acc + place.ticket, 0);
   const packageSurcharge = PACKAGES[packageId]?.price || 0;
+  const basePrice =
+    presetPricing && Number.isFinite(Number(presetPricing.baseOverride))
+      ? Number(presetPricing.baseOverride)
+      : BASE_PRICE;
+  const mandatoryExtras = Array.isArray(presetPricing?.mandatoryExtras)
+    ? presetPricing.mandatoryExtras
+        .filter((item) => item && Number.isFinite(Number(item.price)))
+        .map((item) => ({ label: String(item.label || "").trim(), price: Number(item.price) }))
+    : [];
+  const mandatoryExtrasTotal = mandatoryExtras.reduce((acc, item) => acc + item.price, 0);
   const addonsTotal = selectedAddons.reduce((acc, addonId) => {
     return acc + (ADDON_OPTIONS[addonId]?.price || 0);
   }, 0);
-  const routeOnly = BASE_PRICE + surcharge + packageSurcharge + addonsTotal;
+  const routeOnly =
+    basePrice + surcharge + packageSurcharge + addonsTotal + mandatoryExtrasTotal;
   return {
-    base: BASE_PRICE,
+    base: basePrice,
     includedSpots: INCLUDED_SPOTS,
     extraPlaces,
     surcharge,
     packageId,
     packageSurcharge,
+    mandatoryExtras,
+    mandatoryExtrasTotal,
     addons: selectedAddons,
     addonsTotal,
     ticketTotal,
@@ -939,6 +1076,8 @@ function addPlaceFromCatalog(template) {
 
   state.mode = "custom";
   state.routeTitle = getCustomRouteTitle();
+  state.requiredPlacesMin = MIN_ROUTE_PLACES;
+  state.presetPricing = null;
   state.places.push({
     id: newId(),
     name: template.name,
@@ -1091,6 +1230,12 @@ function renderSummary() {
 
   const packageName =
     state.packageId === PACKAGES.premium.id ? t("premiumPackage") : t("quickPackage");
+  const basePriceLabel =
+    state.presetPricing && Number.isFinite(Number(state.presetPricing.baseOverride))
+      ? state.language === "en"
+        ? "Tour base price"
+        : "Базовая цена тура"
+      : t("basePrice");
   const addonsText = pricing.addons.length
     ? pricing.addons
         .map((addonId) => {
@@ -1102,6 +1247,9 @@ function renderSummary() {
         })
         .join(", ")
     : t("none");
+  const mandatoryExtrasText = pricing.mandatoryExtras.length
+    ? pricing.mandatoryExtras.map((item) => item.label || formatMoney(item.price)).join(", ")
+    : t("none");
 
   const topRows = [
     [state.language === "en" ? "Tour" : "Тур", state.routeTitle],
@@ -1109,13 +1257,17 @@ function renderSummary() {
     [t("locations"), `${state.places.length}`],
     [t("totalTime"), `${totalHours.toFixed(1)} ч`],
     [t("pricingFormat"), t("pricePerCar")],
-    [t("basePrice"), formatMoney(pricing.base)],
+    [basePriceLabel, formatMoney(pricing.base)],
     [
       `${t("extraPlacesLabel")} (${pricing.extraPlaces})`,
       formatMoney(pricing.surcharge),
     ],
     [t("packageLabel"), `${packageName} (${formatMoney(pricing.packageSurcharge)})`],
     [t("addonsLabel"), `${addonsText} (${formatMoney(pricing.addonsTotal)})`],
+    [
+      state.language === "en" ? "Mandatory trip extras" : "Обязательные доп.расходы",
+      `${mandatoryExtrasText} (${formatMoney(pricing.mandatoryExtrasTotal)})`,
+    ],
     [
       state.language === "en"
         ? `Route subtotal (${INCLUDED_SPOTS}+ places)`
@@ -1175,6 +1327,15 @@ function renderSummary() {
   const staticTips = [
     t("recommendDeparture"),
   ];
+  if (pricing.mandatoryExtras.length) {
+    pricing.mandatoryExtras.forEach((item) => {
+      staticTips.push(
+        `${
+          state.language === "en" ? "Mandatory extra" : "Обязательная доплата"
+        }: ${item.label} (${formatMoney(item.price)})`
+      );
+    });
+  }
   const allTips = [...staticTips, ...tips];
 
   if (allTips.length) {
@@ -1234,16 +1395,17 @@ function renderAvailability() {
 function renderRouteMinInfo() {
   if (!selectedCountInfoEl) return;
   const count = state.places.length;
-  const missing = Math.max(0, MIN_ROUTE_PLACES - count);
+  const requiredMin = getRequiredPlacesMin();
+  const missing = Math.max(0, requiredMin - count);
   const dateBlocked = travelDateEl ? isBlockedDate(travelDateEl.value) : false;
-  const readyToSend = count >= MIN_ROUTE_PLACES && !dateBlocked;
+  const readyToSend = count >= requiredMin && !dateBlocked;
 
   selectedCountInfoEl.textContent = t("selectedPlacesCounter", {
     count,
-    min: MIN_ROUTE_PLACES,
+    min: requiredMin,
   });
   selectedCountInfoEl.classList.remove("notice-ok", "notice-error");
-  selectedCountInfoEl.classList.add(count >= MIN_ROUTE_PLACES ? "notice-ok" : "notice-error");
+  selectedCountInfoEl.classList.add(count >= requiredMin ? "notice-ok" : "notice-error");
 
   if (leadSubmitBtn) {
     leadSubmitBtn.disabled = !readyToSend;
@@ -1349,7 +1511,7 @@ function setStepState(stepEl, { active = false, done = false }) {
 
 function renderSteps() {
   const hasMode = Boolean(state.mode);
-  const isReadyForContacts = state.places.length >= MIN_ROUTE_PLACES;
+  const isReadyForContacts = state.places.length >= getRequiredPlacesMin();
 
   setStepState(step1El, { active: !hasMode, done: hasMode });
   setStepState(step2El, { active: hasMode && !isReadyForContacts, done: isReadyForContacts });
@@ -1358,6 +1520,11 @@ function renderSteps() {
 
 function selectMode(mode) {
   state.mode = mode;
+  if (mode === "custom") {
+    state.routeTitle = getCustomRouteTitle();
+    state.requiredPlacesMin = MIN_ROUTE_PLACES;
+    state.presetPricing = null;
+  }
   render();
 }
 
@@ -1404,7 +1571,17 @@ async function syncCatalogSpots() {
     if (response.ok && data.ok && Array.isArray(data.items) && data.items.length) {
       const normalized = data.items.map(normalizeSpot).filter(Boolean);
       if (normalized.length) {
-        CATALOG_SPOTS = normalized;
+        const merged = new Map();
+        normalized.forEach((spot) => {
+          merged.set(`${spot.name}::${spot.region}`, spot);
+        });
+        DEFAULT_CATALOG_SPOTS.map(normalizeSpot)
+          .filter(Boolean)
+          .forEach((spot) => {
+            const key = `${spot.name}::${spot.region}`;
+            if (!merged.has(key)) merged.set(key, spot);
+          });
+        CATALOG_SPOTS = [...merged.values()];
         render();
         return;
       }
@@ -1447,6 +1624,7 @@ function showLeadResult(message, isError = false) {
 
 function buildLeadPayload() {
   const routeDays = buildItinerary(getSegments(state.places)).length;
+  const requiredPlacesMin = getRequiredPlacesMin();
   const peopleCount = Number(document.getElementById("customerPeople").value) || 1;
   const noteRaw = document.getElementById("customerNote").value.trim();
   const peoplePrefix = state.language === "en" ? "People" : "Людей";
@@ -1465,8 +1643,10 @@ function buildLeadPayload() {
     route: {
       days: routeDays,
       driver_name: state.routeTitle,
+      required_places_min: requiredPlacesMin,
       package_id: state.packageId,
       addons: state.selectedAddons,
+      preset_pricing: state.presetPricing,
       places: state.places,
     },
     pricing,
@@ -1508,6 +1688,8 @@ function sendLeadToTelegram(payload, leadId = null) {
     days: payload.route.days,
     package_id: payload.route.package_id,
     addons: payload.route.addons,
+    required_places_min: payload.route.required_places_min,
+    preset_pricing: payload.route.preset_pricing,
     places_count: payload.route.places.length,
     total_price: payload.pricing.total,
     route_preview: payload.route.places.map((item) => item.name).slice(0, 6),
@@ -1530,15 +1712,25 @@ function buildPlaceFromCatalogName(name) {
   };
 }
 
-function applyNamedPreset(routeTitle, placeNames) {
+function applyNamedPreset(config) {
+  const routeTitle = String(config?.routeTitle || "").trim();
+  const placeNames = Array.isArray(config?.placeNames) ? config.placeNames : [];
   const places = placeNames
     .map((name) => buildPlaceFromCatalogName(name))
     .filter(Boolean);
 
-  if (!places.length) return;
+  if (!places.length || !routeTitle) return;
+
+  const requiredPlacesMinRaw = Number(config?.requiredPlacesMin);
+  const requiredPlacesMin =
+    Number.isFinite(requiredPlacesMinRaw) && requiredPlacesMinRaw > 0
+      ? Math.round(requiredPlacesMinRaw)
+      : Math.min(MIN_ROUTE_PLACES, places.length);
 
   state.mode = "ready";
   state.routeTitle = routeTitle;
+  state.requiredPlacesMin = requiredPlacesMin;
+  state.presetPricing = config?.presetPricing || null;
   state.places = places.map((place) => ({ ...place, id: newId() }));
   render();
 }
@@ -1551,8 +1743,9 @@ leadForm.addEventListener("submit", async (event) => {
     return;
   }
 
-  if (state.places.length < MIN_ROUTE_PLACES) {
-    showLeadResult(t("minPlacesError"), true);
+  const requiredMin = getRequiredPlacesMin();
+  if (state.places.length < requiredMin) {
+    showLeadResult(t("minPlacesError", { min: requiredMin }), true);
     return;
   }
 
@@ -1581,75 +1774,125 @@ leadForm.addEventListener("submit", async (event) => {
   }
 });
 
-if (addPaperhillsRouteBtn) {
-  addPaperhillsRouteBtn.addEventListener("click", () => {
-    applyNamedPreset("Paperhills - Завтрак над облаками", [
-      "Paperhills",
-      "Tegalalang Rice Terrace",
-      "Kanto Lampo Waterfall",
-      "Gunung Kawi Tampaksiring",
-      "Taman Dedari",
-    ]);
+if (addSekumpulRouteBtn) {
+  addSekumpulRouteBtn.addEventListener("click", () => {
+    applyNamedPreset({
+      routeTitle: "Секумпул и Северные жемчужины",
+      placeNames: [
+        "Sekumpul Waterfall",
+        "Sekumpul Waterfall View Point",
+        "Aling-Aling Waterfall",
+        "Puncak Wanagiri",
+        "Bali Handara Gate",
+      ],
+    });
   });
 }
 
-if (addEastBaliRouteBtn) {
-  addEastBaliRouteBtn.addEventListener("click", () => {
-    applyNamedPreset("East Bali Gates & Snorkel", [
-      "Penataran Agung Lempuyang Temple",
-      "LAHANGAN SWEET",
-      "Tulamben Beach Viewpoint (USAT Liberty Snorkeling)",
-      "Gembleng Waterfall",
-      "Bali Chocolate Factory",
-    ]);
+if (addUbudClassicRouteBtn) {
+  addUbudClassicRouteBtn.addEventListener("click", () => {
+    applyNamedPreset({
+      routeTitle: "Убуд Классика",
+      placeNames: [
+        "Tegalalang Rice Terrace",
+        "Tirta Empul",
+        "Gunung Kawi Tampaksiring",
+        "Taman Dedari",
+        "Kanto Lampo Waterfall",
+      ],
+    });
   });
 }
 
-if (addUbudCenterRouteBtn) {
-  addUbudCenterRouteBtn.addEventListener("click", () => {
-    applyNamedPreset("Центр Бали - Убуд", [
-      "Tegalalang Rice Terrace",
-      "Tirta Empul",
-      "Gunung Kawi Tampaksiring",
-      "Taman Dedari",
-      "Kanto Lampo Waterfall",
-    ]);
+if (addKintamaniRouteBtn) {
+  addKintamaniRouteBtn.addEventListener("click", () => {
+    applyNamedPreset({
+      routeTitle: "Кинтамани - вулканы и рассвет",
+      placeNames: [
+        "Pinggan Sunrise Point",
+        "Mount Batur Viewpoint",
+        "Batur Natural Hot Spring",
+        "Paperhills",
+        "Penglipuran Village",
+      ],
+    });
   });
 }
 
 if (addNorthSideRouteBtn) {
   addNorthSideRouteBtn.addEventListener("click", () => {
-    applyNamedPreset("Северная сторона Бали", [
-      "Sekumpul Waterfall",
-      "Banyu Wana Amertha Waterfall",
-      "Puncak Wanagiri",
-      "Bali Handara Gate",
-      "Fresh Strawberry (дегустация клубничного вина)",
-    ]);
+    applyNamedPreset({
+      routeTitle: "Север Бали - озера и водопады",
+      placeNames: [
+        "Sekumpul Waterfall",
+        "Banyu Wana Amertha Waterfall",
+        "Puncak Wanagiri",
+        "Bali Handara Gate",
+        "Fresh Strawberry (дегустация клубничного вина)",
+      ],
+    });
   });
 }
 
-if (addSpiritualRouteBtn) {
-  addSpiritualRouteBtn.addEventListener("click", () => {
-    applyNamedPreset("Духовный Бали", [
-      "Penataran Agung Lempuyang Temple",
-      "Tirta Gangga",
-      "Tirta Empul",
-      "Pura Gunung Kawi Sebatu",
-      "Gunung Kawi Tampaksiring",
-    ]);
+if (addEastBaliRouteBtn) {
+  addEastBaliRouteBtn.addEventListener("click", () => {
+    applyNamedPreset({
+      routeTitle: "Восток Бали - храмы и океан",
+      placeNames: [
+        "Penataran Agung Lempuyang Temple",
+        "LAHANGAN SWEET",
+        "Tulamben Beach Viewpoint (USAT Liberty Snorkeling)",
+        "Gembleng Waterfall",
+        "Bali Chocolate Factory",
+      ],
+    });
   });
 }
 
-if (addActiveRouteBtn) {
-  addActiveRouteBtn.addEventListener("click", () => {
-    applyNamedPreset("Активный Бали", [
-      "Nungnung Waterfall",
-      "Leke Leke Waterfall",
-      "Aling-Aling Waterfall",
-      "Tibumana Waterfall",
-      "Kanto Lampo Waterfall",
-    ]);
+if (addIjenRouteBtn) {
+  addIjenRouteBtn.addEventListener("click", () => {
+    applyNamedPreset({
+      routeTitle: "Иджен Экспресс (Ява)",
+      placeNames: [
+        "1911 Cafe & Resto",
+        "Pondok Is Oke - Villas & Bungalows",
+        "Pegunungan Ijen",
+      ],
+      requiredPlacesMin: 3,
+      presetPricing: {
+        baseOverride: 4_500_000,
+        mandatoryExtras: [
+          { label: "Респиратор", price: 50_000 },
+          { label: "Отель", price: 125_000 },
+          { label: "Входные билеты", price: 135_000 },
+        ],
+      },
+    });
+  });
+}
+
+if (addJavaGrandRouteBtn) {
+  addJavaGrandRouteBtn.addEventListener("click", () => {
+    applyNamedPreset({
+      routeTitle: "Ява Гранд Тур - Иджен + Бромо + 2 водопада",
+      placeNames: [
+        "1911 Cafe & Resto",
+        "Pondok Is Oke - Villas & Bungalows",
+        "Pegunungan Ijen",
+        "Kawah Gunung Bromo",
+        "Bromo Escapes",
+        "Tumpak Sewu Waterfall",
+        "Air Terjun Kabut Pelangi",
+      ],
+      presetPricing: {
+        baseOverride: 4_500_000,
+        mandatoryExtras: [
+          { label: "Поездка на джипах", price: 100_000 },
+          { label: "2 отеля", price: 250_000 },
+          { label: "Респиратор Иджен", price: 50_000 },
+        ],
+      },
+    });
   });
 }
 
@@ -1732,6 +1975,8 @@ clearAllBtn.addEventListener("click", () => {
   state.routeTitle =
     state.mode === "ready" ? getReadyRouteTitle() : getCustomRouteTitle();
   state.places = [];
+  state.requiredPlacesMin = MIN_ROUTE_PLACES;
+  state.presetPricing = null;
   render();
 });
 
