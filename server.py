@@ -1,6 +1,9 @@
 import json
+import logging
 import os
 import sqlite3
+import urllib.error
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -12,8 +15,11 @@ DB_PATH = BASE_DIR / "leads.db"
 ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "change-me")
 ALLOWED_STATUSES = {"new", "contacted", "booked", "archived"}
 CATALOG_CONFIG_KEY = "catalog_spots"
+TELEGRAM_BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
+TELEGRAM_ADMIN_CHAT_ID = os.getenv("ADMIN_CHAT_ID", "").strip()
 
 app = Flask(__name__)
+LOGGER = logging.getLogger("tour-server")
 
 
 def get_connection() -> sqlite3.Connection:
@@ -149,6 +155,75 @@ def normalize_spots_payload(items: Any) -> tuple[list[dict[str, Any]], str | Non
         )
 
     return normalized, None
+
+
+def format_money_idr(value: Any) -> str:
+    if isinstance(value, (int, float)):
+        return f"{int(round(value)):,}".replace(",", " ")
+    return str(value)
+
+
+def render_lead_summary(normalized: dict[str, Any], lead_id: int) -> str:
+    customer = normalized.get("customer_name", "-")
+    contact = normalized.get("customer_phone", "-")
+    travel_date = normalized.get("travel_date") or "-"
+    route_days = normalized.get("route_days", "-")
+    places = normalized.get("places") if isinstance(normalized.get("places"), list) else []
+    places_count = normalized.get("places_count", len(places))
+
+    pricing = normalized.get("pricing") if isinstance(normalized.get("pricing"), dict) else {}
+    total = format_money_idr(pricing.get("total", 0))
+
+    preview_names = [
+        item.get("name", "")
+        for item in places[:6]
+        if isinstance(item, dict) and item.get("name")
+    ]
+    route_preview = ", ".join(preview_names)
+    if len(places) > 6:
+        route_preview = f"{route_preview} +{len(places) - 6}"
+
+    lines = [
+        "Новая заявка (backend)",
+        f"ID: {lead_id}",
+        f"Клиент: {customer}",
+        f"Контакт: {contact}",
+        f"Дата: {travel_date}",
+        f"Дней: {route_days}",
+        f"Локаций: {places_count}",
+        f"Итого: {total} IDR",
+    ]
+    if route_preview:
+        lines.append(f"Маршрут: {route_preview}")
+    note = normalized.get("customer_note")
+    if note:
+        lines.append(f"Комментарий: {note}")
+    return "\n".join(lines)
+
+
+def notify_admin_telegram(text: str) -> None:
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_ADMIN_CHAT_ID:
+        return
+
+    try:
+        chat_id: Any = int(TELEGRAM_ADMIN_CHAT_ID)
+    except ValueError:
+        chat_id = TELEGRAM_ADMIN_CHAT_ID
+
+    payload = {"chat_id": chat_id, "text": text}
+    data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    request_obj = urllib.request.Request(
+        f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+        data=data,
+        method="POST",
+        headers={"Content-Type": "application/json"},
+    )
+
+    try:
+        with urllib.request.urlopen(request_obj, timeout=12):
+            return
+    except urllib.error.URLError as error:
+        LOGGER.warning("Failed to send lead notification to Telegram: %s", error)
 
 
 def require_admin_token() -> None:
@@ -353,6 +428,9 @@ def create_lead() -> Any:
             ),
         )
         lead_id = cur.lastrowid
+
+    summary_text = render_lead_summary(normalized, int(lead_id))
+    notify_admin_telegram(summary_text)
 
     return jsonify({"ok": True, "lead_id": lead_id})
 

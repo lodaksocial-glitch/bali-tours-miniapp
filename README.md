@@ -51,7 +51,11 @@
 4. В сервисе `bali-tours-bot` заполните секреты:
    - `BOT_TOKEN`
    - `ADMIN_CHAT_ID`
-5. В `@BotFather` запускайте бота и проверяйте `/start`.
+5. В сервисе `bali-tours-web` тоже заполните:
+   - `BOT_TOKEN`
+   - `ADMIN_CHAT_ID`
+   Это нужно, чтобы backend отправлял новую заявку админу в Telegram сразу после сохранения.
+6. В `@BotFather` запускайте бота и проверяйте `/start`.
 
 ### Точные значения URL для Render
 

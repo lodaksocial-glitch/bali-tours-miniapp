@@ -181,7 +181,8 @@ async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     summary = render_summary(lead_payload, lead_id)
 
-    if ADMIN_CHAT_ID:
+    # Avoid duplicate notifications: when lead_id exists, backend already notified admin.
+    if ADMIN_CHAT_ID and not lead_id and not is_preview_only:
         try:
             await context.bot.send_message(chat_id=int(ADMIN_CHAT_ID), text=summary)
         except Exception as error:  # noqa: BLE001
