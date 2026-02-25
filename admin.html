@@ -237,6 +237,7 @@
         </p>
         <div class="locations-toolbar">
           <input id="spotSearchInput" placeholder="Поиск локации по названию/категории/региону" />
+          <button id="bootstrapSpotsBtn" class="danger">Инициализировать локации</button>
           <button id="loadSpotsBtn">Загрузить локации</button>
           <button id="saveSpotsBtn" class="secondary">Сохранить изменения</button>
         </div>
@@ -255,6 +256,7 @@
       const metaEl = document.getElementById("meta");
 
       const spotSearchInputEl = document.getElementById("spotSearchInput");
+      const bootstrapSpotsBtn = document.getElementById("bootstrapSpotsBtn");
       const loadSpotsBtn = document.getElementById("loadSpotsBtn");
       const saveSpotsBtn = document.getElementById("saveSpotsBtn");
       const spotsMetaEl = document.getElementById("spotsMeta");
@@ -289,6 +291,7 @@
       statusFilterEl.addEventListener("change", loadLeads);
       searchInputEl.addEventListener("input", renderRows);
 
+      bootstrapSpotsBtn.addEventListener("click", bootstrapSpots);
       loadSpotsBtn.addEventListener("click", loadSpots);
       saveSpotsBtn.addEventListener("click", saveSpots);
       spotSearchInputEl.addEventListener("input", renderSpots);
@@ -345,6 +348,28 @@
           image: String(raw.image || "").trim(),
           tip: String(raw.tip || "").trim(),
         };
+      }
+
+      async function loadDefaultSpotsFromAppJs() {
+        const response = await fetch("/app.js", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`Не удалось загрузить app.js: HTTP ${response.status}`);
+        }
+
+        const source = await response.text();
+        const start = source.indexOf("const CATEGORY_IMAGES = {");
+        const end = source.indexOf("let CATALOG_SPOTS =");
+        if (start === -1 || end === -1 || end <= start) {
+          throw new Error("Не удалось найти дефолтный каталог в app.js");
+        }
+
+        const snippet = source.slice(start, end);
+        const evaluator = new Function(`${snippet}\nreturn DEFAULT_CATALOG_SPOTS;`);
+        const items = evaluator();
+        if (!Array.isArray(items) || !items.length) {
+          throw new Error("Дефолтный каталог пуст");
+        }
+        return items.map(normalizeSpot).filter(Boolean);
       }
 
       async function loadLeads() {
@@ -633,7 +658,7 @@
 
           if (!spots.length) {
             setSpotsMeta(
-              "Локации пока не сохранены в базе. Откройте Mini App один раз, затем нажмите «Загрузить локации».",
+              "Локации пока не сохранены в базе. Нажмите «Инициализировать локации», затем «Загрузить локации».",
               true
             );
             return;
@@ -681,6 +706,36 @@
           setSpotsMeta(`Сохранено: ${payload.length} локаций${updatedText}`);
         } catch (error) {
           setSpotsMeta(`Ошибка сохранения: ${error.message}`, true);
+        }
+      }
+
+      async function bootstrapSpots() {
+        setSpotsMeta("Инициализация дефолтных локаций...");
+
+        try {
+          const defaults = await loadDefaultSpotsFromAppJs();
+          const response = await fetch("/api/spots/bootstrap", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ items: defaults }),
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || !data.ok) {
+            throw new Error(data.error || `HTTP ${response.status}`);
+          }
+
+          if (data.bootstrapped) {
+            setSpotsMeta(`Инициализация выполнена: ${data.items_count} локаций.`);
+          } else {
+            setSpotsMeta(
+              `Локации уже были в базе (${data.items_count}). Загружаю текущий список...`
+            );
+          }
+          await loadSpots();
+        } catch (error) {
+          setSpotsMeta(`Ошибка инициализации: ${error.message}`, true);
         }
       }
 
