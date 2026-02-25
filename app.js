@@ -742,7 +742,7 @@ const DEFAULT_CATALOG_SPOTS = [
     region: "java",
     category: "viewpoints",
     duration: 4.5,
-    ticket: 0,
+    ticket: 135000,
     description: "Вулкан Иджен: кратер, рассвет и знаменитые виды.",
     image: CATEGORY_IMAGES.viewpoints,
     tip: "Нужна теплая одежда и респиратор.",
@@ -752,7 +752,7 @@ const DEFAULT_CATALOG_SPOTS = [
     region: "java",
     category: "viewpoints",
     duration: 3.5,
-    ticket: 220000,
+    ticket: 100000,
     description: "Рассвет на Бромо и подъем к кратеру вулкана.",
     image: CATEGORY_IMAGES.viewpoints,
     tip: "На рассвете прохладно, берите куртку.",
@@ -1654,9 +1654,21 @@ function buildPlaceFromCatalogName(name) {
 function applyNamedPreset(config) {
   const routeTitle = String(config?.routeTitle || "").trim();
   const placeNames = Array.isArray(config?.placeNames) ? config.placeNames : [];
+  const placeOverrides =
+    config?.placeOverrides && typeof config.placeOverrides === "object"
+      ? config.placeOverrides
+      : {};
   const places = placeNames
     .map((name) => buildPlaceFromCatalogName(name))
-    .filter(Boolean);
+    .filter(Boolean)
+    .map((place) => {
+      const override = placeOverrides[place.name];
+      if (!override || typeof override !== "object") return place;
+      return {
+        ...place,
+        ...override,
+      };
+    });
 
   if (!places.length || !routeTitle) return;
 
@@ -1797,13 +1809,15 @@ if (addIjenRouteBtn) {
         "Pondok Is Oke - Villas & Bungalows",
         "Pegunungan Ijen",
       ],
+      placeOverrides: {
+        "Pegunungan Ijen": { ticket: 135_000 },
+      },
       requiredPlacesMin: 3,
       presetPricing: {
         baseOverride: 4_500_000,
         mandatoryExtras: [
           { label: "Респиратор", price: 50_000 },
           { label: "Отель", price: 125_000 },
-          { label: "Входные билеты", price: 135_000 },
         ],
       },
     });
@@ -1823,13 +1837,15 @@ if (addJavaGrandRouteBtn) {
         "Tumpak Sewu Waterfall",
         "Air Terjun Kabut Pelangi",
       ],
+      placeOverrides: {
+        "Pegunungan Ijen": { ticket: 135_000 },
+        "Kawah Gunung Bromo": { ticket: 100_000 },
+      },
       presetPricing: {
         baseOverride: 6_500_000,
         mandatoryExtras: [
-          { label: "Поездка на джипах", price: 100_000 },
           { label: "2 отеля", price: 300_000 },
           { label: "Респиратор Иджен", price: 50_000 },
-          { label: "Входной билет Иджен", price: 135_000 },
           { label: "Справки о здоровье", price: 15_000 },
         ],
       },
