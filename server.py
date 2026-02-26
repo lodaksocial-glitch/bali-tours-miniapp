@@ -30,7 +30,18 @@ def get_connection() -> sqlite3.Connection:
 
 
 def init_db() -> None:
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    global DB_PATH
+    try:
+        DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    except PermissionError:
+        fallback = Path("/tmp/leads.db")
+        fallback.parent.mkdir(parents=True, exist_ok=True)
+        LOGGER.warning(
+            "DB_PATH %s is not writable, fallback to %s (ephemeral storage).",
+            DB_PATH,
+            fallback,
+        )
+        DB_PATH = fallback
     with get_connection() as conn:
         conn.execute(
             """
