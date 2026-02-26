@@ -1688,44 +1688,47 @@ function applyNamedPreset(config) {
   render();
 }
 
-leadForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
+if (leadForm) {
+  leadForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
 
-  if (travelDateEl && isBlockedDate(travelDateEl.value)) {
-    showLeadResult(t("unavailableDate"), true);
-    return;
-  }
+    if (travelDateEl && isBlockedDate(travelDateEl.value)) {
+      showLeadResult(t("unavailableDate"), true);
+      return;
+    }
 
-  const requiredMin = getRequiredPlacesMin();
-  if (state.places.length < requiredMin) {
-    showLeadResult(t("minPlacesError", { min: requiredMin }), true);
-    return;
-  }
+    const requiredMin = getRequiredPlacesMin();
+    if (state.places.length < requiredMin) {
+      showLeadResult(t("minPlacesError", { min: requiredMin }), true);
+      return;
+    }
 
-  const payload = buildLeadPayload();
-  if (!payload.customer.name || !payload.customer.phone) {
-    showLeadResult(t("fillContact"), true);
-    return;
-  }
-  if (!payload.customer.people_count || payload.customer.people_count < 1) {
-    showLeadResult(t("invalidPeople"), true);
-    return;
-  }
+    const payload = buildLeadPayload();
+    if (!payload.customer.name || !payload.customer.phone) {
+      showLeadResult(t("fillContact"), true);
+      return;
+    }
+    if (!payload.customer.people_count || payload.customer.people_count < 1) {
+      showLeadResult(t("invalidPeople"), true);
+      return;
+    }
 
-  showLeadResult(t("leadSaving"));
+    showLeadResult(t("leadSaving"));
 
-  try {
-    const result = await saveLead(payload);
-    sendLeadToTelegram(payload, result.lead_id);
-    showLeadResult(t("leadSaved", { id: result.lead_id }));
-    leadForm.reset();
-    document.getElementById("customerPeople").value = "2";
-    state.selectedAddons = [];
-    render();
-  } catch (error) {
-    showLeadResult(error.message, true);
-  }
-});
+    try {
+      const result = await saveLead(payload);
+      sendLeadToTelegram(payload, result.lead_id);
+      showLeadResult(t("leadSaved", { id: result.lead_id }));
+      leadForm.reset();
+      const peopleEl = document.getElementById("customerPeople");
+      if (peopleEl) peopleEl.value = "2";
+      state.selectedAddons = [];
+      render();
+    } catch (error) {
+      showLeadResult(error.message, true);
+    }
+  });
+}
 
 if (addSekumpulRouteBtn) {
   addSekumpulRouteBtn.addEventListener("click", () => {
@@ -1913,14 +1916,16 @@ if (chooseCustomModeBtn) {
   });
 }
 
-clearAllBtn.addEventListener("click", () => {
-  state.routeTitle =
-    state.mode === "ready" ? getReadyRouteTitle() : getCustomRouteTitle();
-  state.places = [];
-  state.requiredPlacesMin = MIN_ROUTE_PLACES;
-  state.presetPricing = null;
-  render();
-});
+if (clearAllBtn) {
+  clearAllBtn.addEventListener("click", () => {
+    state.routeTitle =
+      state.mode === "ready" ? getReadyRouteTitle() : getCustomRouteTitle();
+    state.places = [];
+    state.requiredPlacesMin = MIN_ROUTE_PLACES;
+    state.presetPricing = null;
+    render();
+  });
+}
 
 function setupTelegramButton() {
   const tg = window.Telegram?.WebApp;
