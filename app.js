@@ -204,7 +204,7 @@ const DEFAULT_CATALOG_SPOTS = [
     ticket: 50000,
     description: "Храм на скале и один из лучших закатов на Бали.",
     image:
-      "https://images.unsplash.com/photo-1537953773345-d172ccf13cf1?auto=format&fit=crop&w=1200&q=80",
+      "https://media-cdn.tripadvisor.com/media/attractions-splice-spp-674x446/0a/3e/ca/b5.jpg",
     tip: "Лучшее время: 16:30-18:30.",
   },
   {
@@ -215,7 +215,7 @@ const DEFAULT_CATALOG_SPOTS = [
     ticket: 60000,
     description: "Знаменитый храм в океане, идеален для фото на закате.",
     image:
-      "https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=1200&q=80",
+      "https://www.arabianknightubud.com/wp-content/uploads/2025/07/tanah-lot-temple-1024x683.webp",
     tip: "Закладывайте время на очередь к фототочкам.",
   },
   {
@@ -223,10 +223,12 @@ const DEFAULT_CATALOG_SPOTS = [
     region: "bali",
     category: "temples",
     duration: 2,
-    ticket: 50000,
-    description: "Священные источники и ритуал очищения.",
+    ticket: 75000,
+    description: "Священные источники и ритуал очищения Мелукат.То самое место силы из фильма «Ешь, молись, люби», где героиня Джулии Робертс проходит через ритуал духовного очищения в священных источниках. 
+PerpusNas
+",
     image:
-      "https://images.unsplash.com/photo-1555212697-194d092e3b8f?auto=format&fit=crop&w=1200&q=80",
+      "https://torch.id/cdn/shop/articles/Artikel_160_-_Preview.webp?v=1710761089&width=1100",
     tip: "Берите саронг, на месте тоже можно арендовать.",
   },
   {
@@ -234,10 +236,10 @@ const DEFAULT_CATALOG_SPOTS = [
     region: "bali",
     category: "waterfalls",
     duration: 2.2,
-    ticket: 125000,
+    ticket: 175000,
     description: "Каскад водопадов в джунглях, один из самых впечатляющих.",
     image:
-      "https://images.unsplash.com/photo-1595069906974-f8f3e0c9f916?auto=format&fit=crop&w=1200&q=80",
+      "https://www.google.com/url?sa=t&source=web&rct=j&url=https%3A%2F%2Fwww.balicheapesttours.com%2Fsekumpul-waterfall.html&ved=0CBYQjRxqFwoTCJCU08H29ZIDFQAAAAAdAAAAABAI&opi=89978449",
     tip: "Нужна удобная нескользящая обувь.",
   },
   {
@@ -245,10 +247,10 @@ const DEFAULT_CATALOG_SPOTS = [
     region: "bali",
     category: "waterfalls",
     duration: 1.8,
-    ticket: 125000,
-    description: "Прыжки, горки и купание в природных бассейнах.",
+    ticket: 100000,
+    description: "Прыжки в воду с 5,10,15 метров, горки и купание в природных бассейнах.",
     image:
-      "https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=1200&q=80",
+      "https://balirescentre.com/wp-content/uploads/2025/12/aling-aling-waterfalls.jpg",
     tip: "Активности только с локальным инструктором.",
   },
   {
@@ -259,7 +261,7 @@ const DEFAULT_CATALOG_SPOTS = [
     ticket: 30000,
     description: "Быстрый и удобный водопад рядом с Убудом.",
     image:
-      "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80",
+      "https://cdn.sanity.io/images/nxpteyfv/goguides/a9cb9057258e0f3900c89d7605729feb9efe3ddb-1600x1066.jpg",
     tip: "Утром меньше людей.",
   },
   {
@@ -270,7 +272,7 @@ const DEFAULT_CATALOG_SPOTS = [
     ticket: 25000,
     description: "Легендарные рисовые террасы и фотозоны.",
     image:
-      "https://images.unsplash.com/photo-1598019138951-3261429d6fce?auto=format&fit=crop&w=1200&q=80",
+      "https://blp.inc/storage/location-guide-sub-area/623578bbef18c.jpg",
     tip: "Лучший свет до 10:00.",
   },
   {
@@ -278,10 +280,10 @@ const DEFAULT_CATALOG_SPOTS = [
     region: "bali",
     category: "terraces",
     duration: 2,
-    ticket: 50000,
+    ticket: 75000,
     description: "Большие террасы ЮНЕСКО и спокойные маршруты для прогулки.",
     image:
-      "https://images.unsplash.com/photo-1518182170546-07661fd94144?auto=format&fit=crop&w=1200&q=80",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTESs9sB9-5PCkxmGJ6LP6Z6jypZglmF4WRAA&s",
     tip: "Берите головной убор от солнца.",
   },
   {
