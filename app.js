@@ -238,7 +238,7 @@ const DEFAULT_CATALOG_SPOTS = [
     ticket: 175000,
     description: "Каскад водопадов в джунглях, один из самых впечатляющих.",
     image:
-      "https://www.google.com/url?sa=t&source=web&rct=j&url=https%3A%2F%2Fwww.balicheapesttours.com%2Fsekumpul-waterfall.html&ved=0CBYQjRxqFwoTCJCU08H29ZIDFQAAAAAdAAAAABAI&opi=89978449",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR8nfD_jlB83UdTMBfpif5wmdGyw0yPpev2cQ&s",
     tip: "Нужна удобная нескользящая обувь.",
   },
   {
@@ -293,7 +293,7 @@ const DEFAULT_CATALOG_SPOTS = [
     ticket: 50000,
     description: "Панорамные качели и виды на озера Bratan/Tamblingan.",
     image:
-      "https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=1200&q=80",
+      "https://backpackerjakarta.com/wp-content/uploads/2017/11/21224243_157354024844518_8521169893553340416_n.jpg",
     tip: "На высоте может быть прохладно.",
   },
   {
@@ -301,10 +301,10 @@ const DEFAULT_CATALOG_SPOTS = [
     region: "bali",
     category: "viewpoints",
     duration: 0.5,
-    ticket: 30000,
+    ticket: 50000,
     description: "Иконические ворота для симметричных фото.",
     image:
-      "https://images.unsplash.com/photo-1589308078059-be1415eab4c3?auto=format&fit=crop&w=1200&q=80",
+      "https://www.baliholidaysecrets.com/wp-content/uploads/2025/08/bali-handara-gate.webp",
     tip: "Приезжайте пораньше, чтобы избежать очередей.",
   },
   {
@@ -315,7 +315,7 @@ const DEFAULT_CATALOG_SPOTS = [
     ticket: 10000,
     description: "Самая известная смотровая Нуса Пениды (T-Rex cliff).",
     image:
-      "https://images.unsplash.com/photo-1604999333679-b86d54738315?auto=format&fit=crop&w=1200&q=80",
+      "https://static.saltinourhair.com/wp-content/uploads/2018/10/23145815/kelingking-nusa-penida-viewpoint-1-1920x1386.jpg",
     tip: "Локация популярная, лучше ехать утром.",
   },
   {
@@ -326,7 +326,7 @@ const DEFAULT_CATALOG_SPOTS = [
     ticket: 10000,
     description: "Пляж для купания и снорклинга на Нуса Пенида.",
     image:
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1200&q=80",
+      "https://www.baliskytour.com/images/CrystalBay3.jpg",
     tip: "Снорклинг лучше при спокойной воде.",
   },
   {
@@ -337,7 +337,7 @@ const DEFAULT_CATALOG_SPOTS = [
     ticket: 15000,
     description: "Красивый пляж с высокими скалами на полуострове Букит.",
     image:
-      "https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?auto=format&fit=crop&w=1200&q=80",
+      "https://thebalisun.com/wp-content/uploads/2025/04/Stunning-Southern-Bali-Beach-Is-Rising-In-Popularity-With-Tourists-For-Good-Reason.jpg",
     tip: "Комфортнее ехать после 15:00.",
   },
   {
@@ -348,7 +348,7 @@ const DEFAULT_CATALOG_SPOTS = [
     ticket: 0,
     description: "Ужин на берегу океана с морепродуктами.",
     image:
-      "https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1200&q=80",
+      "https://jimbaranbayrestaurant.com/wp-content/uploads/2025/06/cropped-beachfront-seafood-dinner-2.jpg",
     tip: "Лучше бронировать стол к закату.",
   },
   {
@@ -359,7 +359,7 @@ const DEFAULT_CATALOG_SPOTS = [
     ticket: 0,
     description: "Завтрак/обед с панорамным видом в северной части Бали.",
     image:
-      "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1200&q=80",
+      "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/19/63/8a/4d/photo0jpg.jpg?w=600&h=600&s=1",
     tip: "Попробуйте сатай и местный кофе.",
   },
   {
@@ -370,7 +370,7 @@ const DEFAULT_CATALOG_SPOTS = [
     ticket: 0,
     description: "Удобный запасной вариант обеда в районе Убуда.",
     image:
-      "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80",
+      "https://static.promediateknologi.id/crop/0x0:0x0/750x500/webp/photo/p2/67/2024/02/23/CANDRA-1931761531.jpeg",
     tip: "Средний чек 80 000-120 000 IDR.",
   },
   {
@@ -381,7 +381,7 @@ const DEFAULT_CATALOG_SPOTS = [
     ticket: 75000,
     description: "Ферма с альпаками и спокойной семейной атмосферой.",
     image:
-      "https://images.unsplash.com/photo-1495908333425-29a1e0918c5f?auto=format&fit=crop&w=1200&q=80",
+      "https://cdn.getyourguide.com/image/format=auto,fit=crop,gravity=center,quality=60,width=450,height=450,dpr=2/tour_img/2b414474bfc837d023be7fdf9696ef5a9d97e2a9c9ae85aff2232b09a20e5617.jpg",
     tip: "Подходит для детей и короткой паузы в дороге.",
   },
   {
@@ -392,7 +392,7 @@ const DEFAULT_CATALOG_SPOTS = [
     ticket: 20000,
     description: "Неформальная остановка с локальными животными по пути.",
     image:
-      "https://images.unsplash.com/photo-1474511320723-9a56873867b5?auto=format&fit=crop&w=1200&q=80",
+      "https://media.istockphoto.com/id/688157310/ru/фото/caged-копи-лувак-кофе-moongose-на-бали-индонезии.jpg?s=170667a&w=0&k=20&c=lUbxp9K8L_zOR_IFnlrr25gTddUToPNeMxZphiNh94o=",
     tip: "Выбирайте этичные локации, где нет жесткого контакта.",
   },
   {
@@ -400,9 +400,10 @@ const DEFAULT_CATALOG_SPOTS = [
     region: "bali",
     category: "viewpoints",
     duration: 1.1,
-    ticket: 50000,
+    ticket: 100000,
     description: "Панорамная смотровая площадка в районе Карангасем.",
-    image: CATEGORY_IMAGES.viewpoints,
+    image:
+      "https://awsimages.detik.net.id/community/media/visual/2024/07/05/lahangan-sweet-bali-desa-bunutan-karangasem-dok-lahangansweetcom-2_169.jpeg?w=1200",
     tip: "Лучшее время для фото: раннее утро.",
   },
   {
@@ -412,7 +413,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 1.8,
     ticket: 100000,
     description: "Легендарные «врата небес» с видом на вулкан Агунг.",
-    image: CATEGORY_IMAGES.temples,
+    image:
+      "https://www.gotravelaindonesia.com/wp-content/uploads/Pura-Lempuyang.jpg",
     tip: "Закладывайте время на очередь к фототочке.",
   },
   {
@@ -422,7 +424,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 1.2,
     ticket: 50000,
     description: "Королевский водный дворец с садами и фонтанами.",
-    image: CATEGORY_IMAGES.temples,
+    image:
+      "https://finnsbeachclub.com/wp-content/uploads/2023/04/exploring-bali_s-tirta-gangga-water-palace-1024x683.jpg",
     tip: "Подходит как спокойная остановка без треккинга.",
   },
   {
@@ -432,7 +435,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 1.5,
     ticket: 100000,
     description: "Отдых в горячих источниках и комфортной вилле.",
-    image: CATEGORY_IMAGES.relax,
+    image:
+      "https://ik.imagekit.io/tvlk/xpe-asset/AyJ40ZAo1DOyPyKLZ9c3RGQHTP2oT4ZXW+QmPVVkFQiXFSv42UaHGzSmaSzQ8DO5QIbWPZuF+VkYVRk6gh-Vg4ECbfuQRQ4pHjWJ5Rmbtkk=/3154116240853/Cinze-Natural-Hot-Spring-fdfbe6b9-1006-4f13-8abd-edfe59feaf65.png?_src=imagekit&tr=c-at_max,h-250,q-100,w-412",
     tip: "Берите купальник и сменную одежду.",
   },
   {
@@ -442,7 +446,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 1.2,
     ticket: 0,
     description: "Стильный ресторан с панорамными видами.",
-    image: CATEGORY_IMAGES.food,
+    image:
+      "https://res.klook.com/images/fl_lossy.progressive,q_65/c_fill,w_1295,h_863/w_80,x_15,y_15,g_south_west,l_Klook_water_br_trans_yhcmh3/activities/jbmfuwpt2vw2qpa2mkon/MountBaturTourwithScenicCoffeeStopatPaperhills,Kintamani.jpg",
     tip: "Лучше бронировать стол заранее.",
   },
   {
@@ -452,7 +457,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 1.8,
     ticket: 25000,
     description: "Мощный водопад в джунглях с длинным спуском по лестнице.",
-    image: CATEGORY_IMAGES.waterfalls,
+    image:
+      "https://www.balihonestdriver.com/wp-content/uploads/2020/06/Nungnung-waterfall-for-web.jpg",
     tip: "Нужна удобная обувь для подъема обратно.",
   },
   {
@@ -462,7 +468,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 1.4,
     ticket: 50000,
     description: "Узкий живописный водопад с коротким треккингом.",
-    image: CATEGORY_IMAGES.waterfalls,
+    image:
+      "https://finnsbeachclub.com/wp-content/uploads/2023/12/Leke-Leke-Waterfall-1024x683.webp",
     tip: "Лучше приезжать в первой половине дня.",
   },
   {
@@ -472,7 +479,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 0.7,
     ticket: 20000,
     description: "Древнее священное дерево и атмосферная локация.",
-    image: CATEGORY_IMAGES.viewpoints,
+    image:
+      "https://theworldtravelguy.com/wp-content/uploads/2020/11/DSCF6990.jpg",
     tip: "Локация небольшая, удобно комбинировать с водопадами.",
   },
   {
@@ -482,7 +490,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 0.8,
     ticket: 20000,
     description: "Смотровая с видом на долину и каскады Sekumpul.",
-    image: CATEGORY_IMAGES.viewpoints,
+    image:
+      "https://images.squarespace-cdn.com/content/v1/5a3bb03b4c326d76de73ddaa/1554285066122-JJIP8BVSZLRP6L6RO6GC/The_Common_Wanderer_Sekumpul_waterfall_guide-10.jpg",
     tip: "Идеально для быстрого фото-стопа.",
   },
   {
@@ -492,7 +501,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 1.8,
     ticket: 50000,
     description: "Комплекс из нескольких водопадов в одной локации.",
-    image: CATEGORY_IMAGES.waterfalls,
+    image:
+      "https://www.gusmank.com/CMS/wp-content/uploads/2022/11/banyu-wana-amertha-waterfall-bali-007.jpg",
     tip: "Берите полотенце, можно купаться.",
   },
   {
@@ -502,7 +512,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 1.5,
     ticket: 50000,
     description: "Природные лагуны и каньоны для купания и фото.",
-    image: CATEGORY_IMAGES.waterfalls,
+    image:
+      "https://s-light.tiket.photos/t/01E25EBZS3W0FY9GTG6C42E1SE/rsfit621414gsm/events/2021/07/15/cfcf4189-0cb2-4d3f-aa44-cc1180f80803-1626334711325-45688fcaa47bcef9883d8a36e70497d1.jpg",
     tip: "Проверяйте погоду, после дождей течение сильнее.",
   },
   {
@@ -512,7 +523,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 0.8,
     ticket: 35000,
     description: "Клубничный сад и дегустация локального вина.",
-    image: CATEGORY_IMAGES.food,
+    image:
+      "https://townsquare.media/site/40/files/2023/03/attachment-richard-loader-zCxCn6lRZpg-unsplash.jpg",
     tip: "Хорошая остановка между северными локациями.",
   },
   {
@@ -521,8 +533,9 @@ const DEFAULT_CATALOG_SPOTS = [
     category: "relax",
     duration: 1,
     ticket: 25000,
-    description: "Спокойная природная локация с чистой водой.",
-    image: CATEGORY_IMAGES.relax,
+    description: "Спокойная природная локация с чистой водой. Плывем на надувных тюбингах по реке",
+    image:
+      "https://liburanyuk.co.id/wp-content/uploads/2022/01/babahan-crystal-water-bali.jpg",
     tip: "Подходит для тихой паузы без толпы.",
   },
   {
@@ -532,7 +545,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 1.3,
     ticket: 30000,
     description: "Уютные рисовые террасы с локальной атмосферой.",
-    image: CATEGORY_IMAGES.terraces,
+    image:
+      "https://img1.wsimg.com/isteam/ip/6e0089e0-eaf3-4dff-b71a-f6f273c9c078/Wonderful%20Indonesia.jpg/:/cr=t:12.44%25,l:0%25,w:100%25,h:75.12%25/rs=w:600,h:300,cg:true",
     tip: "Утром свет мягче и меньше людей.",
   },
   {
@@ -542,7 +556,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 1.5,
     ticket: 50000,
     description: "Террасы, качели и фотозоны в районе Убуда.",
-    image: CATEGORY_IMAGES.terraces,
+    image:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQNn-2lBkn1PcdwhtqlFO0GdYg2MeCLgf-SPw&s",
     tip: "Для активностей на качелях нужна доплата на месте.",
   },
   {
@@ -552,7 +567,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 1,
     ticket: 0,
     description: "Парк-скульптур и атмосферная прогулочная зона у реки.",
-    image: CATEGORY_IMAGES.temples,
+    image:
+      "https://static.promediateknologi.id/crop/0x0:0x0/0x0/webp/photo/p2/11/2024/12/04/296487417_131831309327310_3213992059836810361_n-2310264101.jpg",
     tip: "Удобно совместить с маршрутом по Убуду.",
   },
   {
@@ -562,7 +578,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 0.8,
     ticket: 0,
     description: "Панорамная точка с видом на долину и джунгли Убуда.",
-    image: CATEGORY_IMAGES.viewpoints,
+    image:
+      "https://majalahbali.com/wp-content/uploads/2022/10/sayan-cover-fix.jpg",
     tip: "Лучший свет ближе к закату.",
   },
   {
@@ -572,7 +589,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 1.4,
     ticket: 30000,
     description: "Компактный красивый водопад с легким подходом.",
-    image: CATEGORY_IMAGES.waterfalls,
+    image:
+      "https://s-light.tiket.photos/t/01E25EBZS3W0FY9GTG6C42E1SE/rsfit800600gsm/eventThirdParty/2024/11/06/71f6aa88-3cd2-4ce5-927c-e79098431fbc-1730880810514-5b458e569ddd273419f07df83f354f3f.jpg",
     tip: "Подходит для семей и спокойного формата.",
   },
   {
@@ -582,7 +600,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 1.2,
     ticket: 25000,
     description: "Каскадный водопад с популярной фототочкой.",
-    image: CATEGORY_IMAGES.waterfalls,
+    image:
+      "https://digitaltravelcouple.com/wp-content/uploads/2022/01/kanto-lampo-waterfall-bali-1.jpg",
     tip: "После дождя камни могут быть скользкими.",
   },
   {
@@ -593,7 +612,8 @@ const DEFAULT_CATALOG_SPOTS = [
     ticket: 30000,
     description:
       "Каскадные водопады и природные каменные бассейны для купания и фото.",
-    image: CATEGORY_IMAGES.waterfalls,
+    image:
+      "https://awsimages.detik.net.id/community/media/visual/2024/07/12/gembleng-waterfall-di-karangasem-bali-tangkapan-layar-google-earthf-bader_169.png?w=650&q=90",
     tip: "Локация спокойная, лучше приезжать утром для мягкого света.",
   },
   {
@@ -603,7 +623,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 1.5,
     ticket: 25000,
     description: "Панорамные террасы и виды на долину Сидемен.",
-    image: CATEGORY_IMAGES.terraces,
+    image:
+      "https://balidens.com/wp-content/uploads/2022/12/sidemen-1024x573.jpg",
     tip: "Хороший маршрут для спокойного дня без спешки.",
   },
   {
@@ -613,7 +634,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 1.2,
     ticket: 0,
     description: "Ресторан с красивой подачей и видами на горы.",
-    image: CATEGORY_IMAGES.food,
+    image:
+      "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2e/34/cb/1c/profile.jpg?w=900&h=500&s=1",
     tip: "Лучше планировать как обеденную остановку.",
   },
   {
@@ -623,7 +645,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 0.9,
     ticket: 30000,
     description: "Десертная точка с дегустацией шоколадных изделий.",
-    image: CATEGORY_IMAGES.food,
+    image:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRMvnwQFFdH2PGCfFW7Phy3Ds6M8lpppp9lRw&s",
     tip: "Можно взять наборы шоколада как сувенир.",
   },
   {
@@ -633,7 +656,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 1.5,
     ticket: 15000,
     description: "Спокойный пляж в Карангасеме с красивой береговой линией.",
-    image: CATEGORY_IMAGES.beaches,
+    image:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQBKN6vU3_L7hkX_9Tl5Q5n699nhIICVvzROA&s",
     tip: "Лучше брать наличные на лежаки и кафе.",
   },
   {
@@ -644,7 +668,8 @@ const DEFAULT_CATALOG_SPOTS = [
     ticket: 0,
     description:
       "Обед рядом с самолетом в Keramas Aero Park и прогулка по черному пляжу.",
-    image: CATEGORY_IMAGES.beaches,
+    image:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQEj_hNndAECJBV5WeWvGomnFZshVyzE6id5Q&s",
     tip: "Удобная комбинированная остановка еда + фото + море.",
   },
   {
@@ -654,7 +679,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 1.3,
     ticket: 50000,
     description: "Древний храмовый комплекс в ущелье с каменными рельефами.",
-    image: CATEGORY_IMAGES.temples,
+    image:
+      "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/06/c4/ab/20/gunung-kawi.jpg?w=900&h=500&s=1",
     tip: "Будет спуск по лестнице, закладывайте время на подъем.",
   },
   {
@@ -664,7 +690,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 1,
     ticket: 50000,
     description: "Тихий водный храм с очень фотогеничной территорией.",
-    image: CATEGORY_IMAGES.temples,
+    image:
+      "https://roadtripsandsuitcases.com/wp-content/uploads/2025/01/DSC_2714_5_6_Optimizer_edited_edited.jpg",
     tip: "Отличная альтернатива более людным храмам.",
   },
   {
@@ -675,7 +702,8 @@ const DEFAULT_CATALOG_SPOTS = [
     ticket: 50000,
     description:
       "Снорклинг у знаменитого затонувшего корабля USAT Liberty в Туламбене.",
-    image: CATEGORY_IMAGES.beaches,
+    image:
+      "https://www.flagman.travel/upload/medialibrary/a37/cizz5bqjs4ov4d47wmqmmaubidmimmfr.jpg",
     tip: "Для комфортного снорклинга лучше ехать при спокойной воде.",
   },
   {
@@ -685,7 +713,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 1,
     ticket: 30000,
     description: "Рассветная панорама на вулкан Батур и озеро в Кинтамани.",
-    image: CATEGORY_IMAGES.viewpoints,
+    image:
+      "https://awsimages.detik.net.id/community/media/visual/2023/08/10/desa-pinggan-kintamani-bangli-bali-dok-kemenparekraf.jpeg?w=1200",
     tip: "Лучший свет с 05:30 до 06:30.",
   },
   {
@@ -693,9 +722,10 @@ const DEFAULT_CATALOG_SPOTS = [
     region: "bali",
     category: "viewpoints",
     duration: 1,
-    ticket: 25000,
+    ticket: 100000,
     description: "Классическая смотровая точка на кальдеру и вулкан Батур.",
-    image: CATEGORY_IMAGES.viewpoints,
+    image:
+      "https://www.pelago.com/img/products/ID-Indonesia/mount-batur-sunrise-trekking-meeting-point-ubud-palace/c89053e4-7a76-4c9a-af99-afe7e1cebc52_mount-batur-sunrise-trekking-meeting-point-ubud-palace.jpg",
     tip: "Утром меньше облаков и туристов.",
   },
   {
@@ -705,7 +735,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 1.7,
     ticket: 175000,
     description: "Термальные источники у подножья вулкана Батур.",
-    image: CATEGORY_IMAGES.relax,
+    image:
+      "https://www.balibestjourney.com/public/uploads/berita/Berita_221705030554_batur-natural-hot-spring-best-place-for-body-relaxation-on-the-side-of-a-beautiful-lake.jpg",
     tip: "Берите купальник и сменную одежду.",
   },
   {
@@ -715,7 +746,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 1.2,
     ticket: 50000,
     description: "Традиционная балийская деревня с красивой планировкой улиц.",
-    image: CATEGORY_IMAGES.viewpoints,
+    image:
+      "https://tansestate.com/wp-content/uploads/2025/07/561-desa-penglipuran.jpg",
     tip: "Подходит для спокойной прогулки и фото.",
   },
   {
@@ -725,7 +757,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 1,
     ticket: 0,
     description: "Кафе-остановка перед маршрутом на Иджен.",
-    image: CATEGORY_IMAGES.food,
+    image:
+      "https://koreana.rest/upload/article/Корейский-комплексный-обед.jpg",
     tip: "Удобно поесть перед ночным подъемом.",
   },
   {
@@ -735,7 +768,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 8,
     ticket: 0,
     description: "Ночевка перед/после восхождений на Яве.",
-    image: CATEGORY_IMAGES.relax,
+    image:
+      "https://cf.bstatic.com/xdata/images/hotel/max1024x768/675486223.jpg?k=1bb1e633efd1a463b89c158cd6c77692d3c8869bda19a8b06fcc93bfceafe40e&o=",
     tip: "Рекомендуется ранний сон перед выездом на рассвет.",
   },
   {
@@ -745,7 +779,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 4.5,
     ticket: 135000,
     description: "Вулкан Иджен: кратер, рассвет и знаменитые виды.",
-    image: CATEGORY_IMAGES.viewpoints,
+    image:
+      "https://inspiretravel.id/wp-content/uploads/2023/09/1-9.jpg",
     tip: "Нужна теплая одежда и респиратор.",
   },
   {
@@ -755,7 +790,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 3.5,
     ticket: 100000,
     description: "Рассвет на Бромо и подъем к кратеру вулкана.",
-    image: CATEGORY_IMAGES.viewpoints,
+    image:
+      "https://adamputratravel.com/wp-content/uploads/2025/05/Kawah-gunung-bromo.webp",
     tip: "На рассвете прохладно, берите куртку.",
   },
   {
@@ -765,7 +801,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 1.2,
     ticket: 0,
     description: "Фотостопы и панорамные точки в районе Бромо.",
-    image: CATEGORY_IMAGES.viewpoints,
+    image:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQtOv01UlNt0UbzwC6LIiP_4bg681XZjXhlWg&s",
     tip: "Лучшие кадры в золотой час.",
   },
   {
@@ -775,7 +812,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 2.5,
     ticket: 50000,
     description: "Один из самых впечатляющих водопадов Явы.",
-    image: CATEGORY_IMAGES.waterfalls,
+    image:
+      "https://static.saltinourhair.com/wp-content/uploads/2018/09/23151253/tumpak-sewu-best-waterfall-indonesia-java-foot.jpg",
     tip: "Обувь с хорошим сцеплением обязательна.",
   },
   {
@@ -785,7 +823,8 @@ const DEFAULT_CATALOG_SPOTS = [
     duration: 1.8,
     ticket: 30000,
     description: "Живописный водопад с мягким треком и фототочками.",
-    image: CATEGORY_IMAGES.waterfalls,
+    image:
+      "https://www.javanesiatours.com/wp-content/uploads/2025/11/4-1-1024x576.jpg",
     tip: "Лучше приезжать в сухую погоду.",
   },
 ];
