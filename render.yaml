@@ -13,14 +13,18 @@ services:
         value: 0.0.0.0
       - key: PORT
         value: 10000
-      - key: DB_PATH
-        value: /tmp/leads.db
+      - key: DATABASE_URL
+        sync: false
       - key: ADMIN_TOKEN
         generateValue: true
       - key: BOT_TOKEN
         sync: false
       - key: ADMIN_CHAT_ID
         sync: false
+      - key: ALLOWED_ORIGINS
+        value: https://bali-tours-web.onrender.com,https://telegram.org
+      - key: FLASK_ENV
+        value: production
 
   - type: worker
     name: bali-tours-bot

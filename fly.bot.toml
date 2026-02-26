@@ -1,0 +1,17 @@
+# Fly.io configuration for Bali Tours Bot Service
+
+app = "bali-tours-bot"
+primary_region = "fra"
+
+[build]
+  builder = "paketobuildpacks/builder:base"
+
+[env]
+  APP_ROLE = "bot"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
+
+# No HTTP service for bot (it's a worker)

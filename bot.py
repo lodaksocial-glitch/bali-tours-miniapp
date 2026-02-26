@@ -35,12 +35,23 @@ def post_json(url: str, payload: dict[str, Any]) -> dict[str, Any]:
         headers={"Content-Type": "application/json"},
     )
 
-    with urllib.request.urlopen(req, timeout=12) as response:
-        raw = response.read().decode("utf-8")
+    try:
+        with urllib.request.urlopen(req, timeout=12) as response:
+            raw = response.read().decode("utf-8")
+    except urllib.error.HTTPError as error:
+        LOGGER.error("HTTP error posting to backend: %s - %s", error.code, error.reason)
+        return {"ok": False, "error": f"Backend HTTP error: {error.code}"}
+    except urllib.error.URLError as error:
+        LOGGER.error("Connection error posting to backend: %s", error.reason)
+        return {"ok": False, "error": "Cannot connect to backend"}
+    except Exception as error:
+        LOGGER.error("Unexpected error posting to backend: %s", error)
+        return {"ok": False, "error": "Unexpected error"}
 
     try:
         return json.loads(raw)
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as error:
+        LOGGER.error("Invalid JSON response from backend: %s", error)
         return {"ok": False, "error": "Invalid JSON response from backend"}
 
 
@@ -185,7 +196,8 @@ async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     try:
         raw_payload = json.loads(message.web_app_data.data)
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as error:
+        LOGGER.error("Failed to parse web app data: %s", error)
         await message.reply_text("Не удалось прочитать данные маршрута.")
         return
 
@@ -207,10 +219,12 @@ async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE
             )
             if response.get("ok"):
                 lead_id = response.get("lead_id")
+                LOGGER.info("Lead created via bot: ID=%s, user=%s", lead_id, user.id)
             else:
-                LOGGER.warning("Backend rejected lead: %s", response)
-        except urllib.error.URLError as error:
-            LOGGER.warning("Cannot reach backend: %s", error)
+                error_msg = response.get("error", "Unknown error")
+                LOGGER.warning("Backend rejected lead: %s", error_msg)
+        except Exception as error:
+            LOGGER.error("Unexpected error creating lead: %s", error)
 
     summary = render_summary(lead_payload, lead_id)
 
@@ -218,8 +232,11 @@ async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE
     if ADMIN_CHAT_ID and not lead_id and not is_preview_only:
         try:
             await context.bot.send_message(chat_id=int(ADMIN_CHAT_ID), text=summary)
-        except Exception as error:  # noqa: BLE001
-            LOGGER.warning("Failed to send admin notification: %s", error)
+            LOGGER.info("Admin notification sent for preview-only submission")
+        except ValueError as error:
+            LOGGER.error("Invalid ADMIN_CHAT_ID format: %s", error)
+        except Exception as error:
+            LOGGER.error("Failed to send admin notification: %s", error)
 
     if lead_id:
         await message.reply_text(
@@ -243,13 +260,22 @@ async def fallback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 def main() -> None:
     if not BOT_TOKEN:
+        LOGGER.error("BOT_TOKEN is required but not set")
         raise RuntimeError("BOT_TOKEN is required")
+
+    if not WEB_APP_URL:
+        LOGGER.warning("WEB_APP_URL is not set - bot will not function properly")
+
+    LOGGER.info("Starting Telegram bot...")
+    LOGGER.info("Web App URL: %s", WEB_APP_URL or "NOT SET")
+    LOGGER.info("Backend URL: %s", BACKEND_URL or "NOT SET")
 
     application = Application.builder().token(BOT_TOKEN).build()
     application.add_handler(CommandHandler("start", start))
     application.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_web_app_data))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, fallback))
 
+    LOGGER.info("Bot is running and polling for updates...")
     application.run_polling(close_loop=False)
 
 

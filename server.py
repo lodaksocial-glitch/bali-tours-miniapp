@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import sqlite3
+import sys
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
@@ -9,6 +10,9 @@ from pathlib import Path
 from typing import Any
 
 from flask import Flask, abort, jsonify, request, send_from_directory
+from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = Path(os.getenv("DB_PATH", str(BASE_DIR / "leads.db"))).expanduser()
@@ -19,14 +23,47 @@ AVAILABILITY_CONFIG_KEY = "blocked_dates"
 TELEGRAM_BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
 TELEGRAM_ADMIN_CHAT_ID = os.getenv("ADMIN_CHAT_ID", "").strip()
 
-app = Flask(__name__)
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(name)s | %(levelname)s | %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)],
+)
 LOGGER = logging.getLogger("tour-server")
+
+# Validate ADMIN_TOKEN on startup
+if ADMIN_TOKEN == "change-me" or len(ADMIN_TOKEN) < 32:
+    LOGGER.warning(
+        "⚠️  SECURITY WARNING: ADMIN_TOKEN is weak or default! "
+        "Generate a strong token with: python3 -c \"import secrets; print(secrets.token_urlsafe(32))\""
+    )
+
+app = Flask(__name__)
+
+# Configure CORS
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
+CORS(app, origins=ALLOWED_ORIGINS, supports_credentials=True)
+
+# Configure rate limiting
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["200 per hour", "50 per minute"],
+    storage_uri="memory://",
+)
 
 
 def get_connection() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+    try:
+        conn = sqlite3.connect(DB_PATH, timeout=10.0)
+        conn.row_factory = sqlite3.Row
+        # Enable foreign keys and WAL mode for better concurrency
+        conn.execute("PRAGMA foreign_keys = ON")
+        conn.execute("PRAGMA journal_mode = WAL")
+        return conn
+    except sqlite3.Error as error:
+        LOGGER.error("Database connection error: %s", error)
+        raise
 
 
 def init_db() -> None:
@@ -42,43 +79,52 @@ def init_db() -> None:
             fallback,
         )
         DB_PATH = fallback
-    with get_connection() as conn:
-        conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS leads (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                created_at TEXT NOT NULL,
-                customer_name TEXT NOT NULL,
-                customer_phone TEXT NOT NULL,
-                travel_date TEXT,
-                customer_note TEXT,
-                source TEXT,
-                route_days INTEGER NOT NULL,
-                route_driver_name TEXT,
-                places_count INTEGER NOT NULL,
-                places_json TEXT NOT NULL,
-                pricing_json TEXT NOT NULL,
-                status TEXT NOT NULL DEFAULT 'new',
-                tg_user_id TEXT,
-                tg_username TEXT,
-                tg_first_name TEXT,
-                tg_last_name TEXT
+
+    try:
+        with get_connection() as conn:
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS leads (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    created_at TEXT NOT NULL,
+                    customer_name TEXT NOT NULL,
+                    customer_phone TEXT NOT NULL,
+                    travel_date TEXT,
+                    customer_note TEXT,
+                    source TEXT,
+                    route_days INTEGER NOT NULL,
+                    route_driver_name TEXT,
+                    places_count INTEGER NOT NULL,
+                    places_json TEXT NOT NULL,
+                    pricing_json TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'new',
+                    tg_user_id TEXT,
+                    tg_username TEXT,
+                    tg_first_name TEXT,
+                    tg_last_name TEXT
+                )
+                """
             )
-            """
-        )
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_leads_created_at ON leads(created_at DESC)"
-        )
-        conn.execute("CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status)")
-        conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS app_config (
-                key TEXT PRIMARY KEY,
-                value TEXT NOT NULL,
-                updated_at TEXT NOT NULL
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_leads_created_at ON leads(created_at DESC)"
             )
-            """
-        )
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status)")
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_leads_travel_date ON leads(travel_date)"
+            )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS app_config (
+                    key TEXT PRIMARY KEY,
+                    value TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                )
+                """
+            )
+            LOGGER.info("Database initialized successfully at %s", DB_PATH)
+    except sqlite3.Error as error:
+        LOGGER.error("Failed to initialize database: %s", error)
+        raise
 
 
 def json_dumps(data: Any) -> str:
@@ -345,6 +391,7 @@ def render_lead_summary(normalized: dict[str, Any], lead_id: int) -> str:
 
 def notify_admin_telegram(text: str) -> None:
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_ADMIN_CHAT_ID:
+        LOGGER.debug("Telegram notification skipped: bot not configured")
         return
 
     try:
@@ -363,9 +410,14 @@ def notify_admin_telegram(text: str) -> None:
 
     try:
         with urllib.request.urlopen(request_obj, timeout=12):
+            LOGGER.info("Telegram notification sent successfully")
             return
+    except urllib.error.HTTPError as error:
+        LOGGER.error("Telegram API error: HTTP %s - %s", error.code, error.reason)
     except urllib.error.URLError as error:
-        LOGGER.warning("Failed to send lead notification to Telegram: %s", error)
+        LOGGER.error("Telegram connection error: %s", error.reason)
+    except Exception as error:
+        LOGGER.error("Unexpected error sending Telegram notification: %s", error)
 
 
 def require_admin_token() -> None:
@@ -373,7 +425,12 @@ def require_admin_token() -> None:
     query_token = request.args.get("token", "")
     token = header_token or query_token
 
+    if not token:
+        LOGGER.warning("Admin endpoint accessed without token from %s", get_remote_address(request))
+        abort(401, description="Admin token required")
+
     if ADMIN_TOKEN and token != ADMIN_TOKEN:
+        LOGGER.warning("Invalid admin token attempt from %s", get_remote_address(request))
         abort(401, description="Invalid admin token")
 
 
@@ -465,8 +522,28 @@ def admin_page() -> Any:
 
 
 @app.get("/api/health")
+@limiter.exempt
 def health() -> Any:
-    return jsonify({"ok": True})
+    health_status = {"ok": True, "timestamp": datetime.now(timezone.utc).isoformat()}
+
+    # Check database connectivity
+    try:
+        with get_connection() as conn:
+            conn.execute("SELECT 1").fetchone()
+        health_status["database"] = "connected"
+    except sqlite3.Error as error:
+        LOGGER.error("Health check: database error - %s", error)
+        health_status["database"] = "error"
+        health_status["ok"] = False
+
+    # Check Telegram bot configuration
+    if TELEGRAM_BOT_TOKEN and TELEGRAM_ADMIN_CHAT_ID:
+        health_status["telegram"] = "configured"
+    else:
+        health_status["telegram"] = "not_configured"
+
+    status_code = 200 if health_status["ok"] else 503
+    return jsonify(health_status), status_code
 
 
 @app.get("/api/spots")
@@ -562,60 +639,69 @@ def save_spots() -> Any:
 
 
 @app.post("/api/leads")
+@limiter.limit("10 per minute")
 def create_lead() -> Any:
     data = request.get_json(silent=True) or {}
     normalized, error = validate_payload(data)
     if error:
+        LOGGER.warning("Lead validation failed: %s", error)
         return jsonify({"ok": False, "error": error}), 400
 
     tg_user = normalized["telegram_user"] if isinstance(normalized["telegram_user"], dict) else {}
 
-    with get_connection() as conn:
-        cur = conn.execute(
-            """
-            INSERT INTO leads (
-                created_at,
-                customer_name,
-                customer_phone,
-                travel_date,
-                customer_note,
-                source,
-                route_days,
-                route_driver_name,
-                places_count,
-                places_json,
-                pricing_json,
-                tg_user_id,
-                tg_username,
-                tg_first_name,
-                tg_last_name
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                normalized["created_at"],
-                normalized["customer_name"],
-                normalized["customer_phone"],
-                normalized["travel_date"],
-                normalized["customer_note"],
-                normalized["source"],
-                normalized["route_days"],
-                normalized["route_driver_name"],
-                normalized["places_count"],
-                json_dumps(normalized["places"]),
-                json_dumps(normalized["pricing"]),
-                str(tg_user.get("id", "")) or None,
-                str(tg_user.get("username", "")) or None,
-                str(tg_user.get("first_name", "")) or None,
-                str(tg_user.get("last_name", "")) or None,
-            ),
-        )
-        lead_id = cur.lastrowid
+    try:
+        with get_connection() as conn:
+            cur = conn.execute(
+                """
+                INSERT INTO leads (
+                    created_at,
+                    customer_name,
+                    customer_phone,
+                    travel_date,
+                    customer_note,
+                    source,
+                    route_days,
+                    route_driver_name,
+                    places_count,
+                    places_json,
+                    pricing_json,
+                    tg_user_id,
+                    tg_username,
+                    tg_first_name,
+                    tg_last_name
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    normalized["created_at"],
+                    normalized["customer_name"],
+                    normalized["customer_phone"],
+                    normalized["travel_date"],
+                    normalized["customer_note"],
+                    normalized["source"],
+                    normalized["route_days"],
+                    normalized["route_driver_name"],
+                    normalized["places_count"],
+                    json_dumps(normalized["places"]),
+                    json_dumps(normalized["pricing"]),
+                    str(tg_user.get("id", "")) or None,
+                    str(tg_user.get("username", "")) or None,
+                    str(tg_user.get("first_name", "")) or None,
+                    str(tg_user.get("last_name", "")) or None,
+                ),
+            )
+            lead_id = cur.lastrowid
 
-    summary_text = render_lead_summary(normalized, int(lead_id))
-    notify_admin_telegram(summary_text)
-    add_blocked_date(normalized.get("travel_date"))
+        LOGGER.info("Lead created: ID=%s, customer=%s", lead_id, normalized["customer_name"])
 
-    return jsonify({"ok": True, "lead_id": lead_id})
+        summary_text = render_lead_summary(normalized, int(lead_id))
+        notify_admin_telegram(summary_text)
+        add_blocked_date(normalized.get("travel_date"))
+
+        return jsonify({"ok": True, "lead_id": lead_id})
+
+    except sqlite3.Error as error:
+        LOGGER.error("Database error creating lead: %s", error)
+        return jsonify({"ok": False, "error": "Database error"}), 500
 
 
 @app.get("/api/leads")
@@ -632,16 +718,24 @@ def list_leads() -> Any:
     query = "SELECT * FROM leads"
     params: list[Any] = []
     if status:
+        if status not in ALLOWED_STATUSES:
+            return jsonify({"ok": False, "error": "Invalid status"}), 400
         query += " WHERE status = ?"
         params.append(status)
 
     query += " ORDER BY id DESC LIMIT ?"
     params.append(limit)
 
-    with get_connection() as conn:
-        rows = conn.execute(query, params).fetchall()
+    try:
+        with get_connection() as conn:
+            rows = conn.execute(query, params).fetchall()
 
-    return jsonify({"ok": True, "items": [map_row(row) for row in rows]})
+        LOGGER.info("Listed %d leads (status=%s)", len(rows), status or "all")
+        return jsonify({"ok": True, "items": [map_row(row) for row in rows]})
+
+    except sqlite3.Error as error:
+        LOGGER.error("Database error listing leads: %s", error)
+        return jsonify({"ok": False, "error": "Database error"}), 500
 
 
 @app.get("/api/analytics")
@@ -668,13 +762,20 @@ def update_lead(lead_id: int) -> Any:
             400,
         )
 
-    with get_connection() as conn:
-        cur = conn.execute("UPDATE leads SET status = ? WHERE id = ?", (status, lead_id))
+    try:
+        with get_connection() as conn:
+            cur = conn.execute("UPDATE leads SET status = ? WHERE id = ?", (status, lead_id))
 
-    if cur.rowcount == 0:
-        return jsonify({"ok": False, "error": "Lead not found"}), 404
+        if cur.rowcount == 0:
+            LOGGER.warning("Lead update failed: ID=%s not found", lead_id)
+            return jsonify({"ok": False, "error": "Lead not found"}), 404
 
-    return jsonify({"ok": True})
+        LOGGER.info("Lead updated: ID=%s, status=%s", lead_id, status)
+        return jsonify({"ok": True})
+
+    except sqlite3.Error as error:
+        LOGGER.error("Database error updating lead %s: %s", lead_id, error)
+        return jsonify({"ok": False, "error": "Database error"}), 500
 
 
 @app.get("/<path:filename>")
